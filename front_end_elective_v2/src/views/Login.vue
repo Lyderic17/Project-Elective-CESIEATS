@@ -1,74 +1,19 @@
 <template>
   <div class='login'>
-    <v-card style='margin: 80px; margin-left: 200px; margint-right:200px;'>
-      <div v-if='know'>
-        <v-list>
-          <div>
-            <v-list-item>
-              <v-list-item-action>
-                <v-icon>mdi-account</v-icon>
-              </v-list-item-action>
-
-              <v-list-item-content>
-                <v-text-field
-                  v-model='new_email'
-                  label='Identifiant'
-                ></v-text-field>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-action>
-                <v-icon>mdi-lock</v-icon>
-              </v-list-item-action>
-
-              <v-list-item-content>
-                <v-text-field
-                  v-model='new_password'
-                  label='Mot de passe'
-                  :rules='passwordRules'
-                  :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                  :type="show ? 'text' : 'password'"
-                  @click:append='show = !show'
-                  required
-                >
-                </v-text-field>
-              </v-list-item-content>
-            </v-list-item>
-          </div>
-        </v-list>
-        <v-row
-          align='center'
-          justify='space-around'
-          style='padding-bottom: 15px'
-        >
-          <div class='my-2'>
-            <v-btn x-small color='blue' @click='know = false'>
-              Mot de passe oublier
-            </v-btn>
-          </div>
-        </v-row>
-        <div class='d-flex justify-space-around' style='padding-bottom: 15px'>
-          <v-btn outlined rounded text @click='validate()'> Valider </v-btn>
+    <div class="login-container">
+      <h2>Connexion à Cesi<span class="highlighted-text">Eats</span></h2>
+      <form @submit.prevent="login">
+        <div class="form-group">
+          <label for="email">Email :</label>
+          <input type="email" id="email" v-model="new_email" required>
         </div>
-        <v-row
-          align='center'
-          justify='space-around'
-          style='padding-bottom: 15px'
-        >
-          <div class='my-2'>
-            <v-btn x-small color='blue' @click="redirect('/register')">
-              Créer un compte
-            </v-btn>
-          </div>
-        </v-row>
-      </div>
-      <div v-else>
-        <forgottenPassword />
-        <div class='d-flex justify-space-around' style='padding-bottom: 15px'>
-          <v-btn outlined text @click='changePassword()'> Valider </v-btn>
+        <div class="form-group">
+          <label for="password">Mot de passe :</label>
+          <input type="password" id="password" v-model="new_password" required>
         </div>
-      </div>
-    </v-card>
+        <button type="submit" @click="validate()">Se connecter</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -136,3 +81,70 @@ axios.defaults.baseURL = 'http://localhost:3000';
 })
 export default class Login extends Vue {}
 </script>
+
+<style>
+body, HTML{
+  padding: 0;
+  margin: 0;
+}
+
+.aaa{
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+.test{
+  position: fixed;
+  right: 5%;
+}
+
+.highlighted-text {
+  color: #4CAF50;
+}
+
+label {
+  display: flex;
+  font-weight: bold;
+  padding-left: 10px;
+}
+
+.login-container {
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: box-shadow 0.3s;
+}
+
+.login-container:hover {
+  box-shadow: 5px 5px 5px #ccc
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+input[type="email"],
+input[type="password"] {
+  width: 90%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button[type="submit"] {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+</style>
