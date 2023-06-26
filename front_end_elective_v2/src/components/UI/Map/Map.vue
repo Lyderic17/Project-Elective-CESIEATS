@@ -1,36 +1,41 @@
 <template>
   <div>
     <l-map
-      :center='center'
-      :zoom='zoom'
-      class='map'
-      ref='map'
-      @update:zoom='zoomUpdated'
-      @update:center='centerUpdated'
-    >
-      <l-tile-layer :url='url'></l-tile-layer>
-      <div v-for='marker in markers' :key='marker.id'>
-        <Icons :marker='marker' />
-      </div>
+    :center="center"
+    :zoom="zoom"
+    :key="mapKey"
+     class="map"
+     ref="map"
+     @update:zoom="zoomUpdated"
+     @update:center="centerUpdated">
+      <l-tile-layer :url="url"></l-tile-layer>
+      <l-marker v-for="marker in markers" :key="marker.id" :lat-lng="marker.coordinates">
+        <l-icon :icon-url="marker.imageUrl" />
+      </l-marker>
     </l-map>
   </div>
 </template>
 
-<script>
-import { LMap, LTileLayer } from 'vue2-leaflet';
+<script lang="js">
+import {
+  LMap, LMarker, LTileLayer, LIcon,
+} from 'vue2-leaflet';
 import 'leaflet/dist/leaflet.css';
-import Icons from './Icons.vue';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 export default {
   components: {
     LMap,
+    LMarker,
     LTileLayer,
-    Icons,
+    LIcon,
   },
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   data() {
     return {
+      mapKey: Date.now(),
       url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      center: [48.9032190343066, 2.1929470176062846],
+      center: [46.17322, -1.17731],
       zoom: 17,
       markers: [
         {
@@ -50,6 +55,7 @@ export default {
           coordinates: [48.89661696921462, 2.2125147140911126],
         },
       ],
+      client: new W3CWebSocket('ws://localhost:3000'), // Your websocket server URL here
     };
   },
   methods: {
@@ -60,6 +66,27 @@ export default {
     centerUpdated(center) {
       this.center = center;
     },
+  },
+  mounted() {
+    this.client.onopen = () => {
+      console.log('WebSocket Client Connected');
+    };
+    this.client.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      console.log('this is inside the onmessage');
+      this.markers = this.markers.map((marker) => {
+        if (marker.id === data.deliveryPersonId) {
+          // Update the coordinates of the marker
+          console.log('this is inside the if of websock');
+          // eslint-disable-next-line no-param-reassign
+          marker.coordinates = [data.latitude, data.longitude];
+        }
+        return marker;
+      });
+
+      // Update mapKey to force map refresh
+      this.mapKey = Date.now();
+    };
   },
 };
 </script>

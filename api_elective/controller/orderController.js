@@ -20,6 +20,30 @@ const Order = require("../model/order");
 const Address = require("../model/address");
 const Price = require("../model/price");
 
+
+// Accept a delivery
+exports.acceptDelivery = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const order = await Order.findByIdAndUpdate(orderId, { status: "accepted" }, { new: true });
+      res.status(200).json(order);
+    } catch (error) {
+      console.error("Failed to accept the delivery:", error);
+      res.status(500).json({ error: "Failed to accept the delivery" });
+    }
+  };
+  
+  // Reject a delivery
+  exports.rejectDelivery = async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const order = await Order.findByIdAndUpdate(orderId, { status: "rejected" }, { new: true });
+      res.status(200).json(order);
+    } catch (error) {
+      console.error("Failed to reject the delivery:", error);
+      res.status(500).json({ error: "Failed to reject the delivery" });
+    }
+  };
 // Retrieving multiple order data by client ID
 module.exports.getByClientId = function(req, res) {
     try {

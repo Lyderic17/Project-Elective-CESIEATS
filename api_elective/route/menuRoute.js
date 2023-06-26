@@ -1,7 +1,4 @@
-/* 
- * The code containing the routes for the Menu endpoint.
- * Author	: Rubisetcie
- */
+
 
 const router = require("express").Router();
 
@@ -16,5 +13,7 @@ router.get("/restaurant/:id", controller.getByRestaurantId);
 
 // Retrieving menu data by ID
 router.get("/:id", controller.getById);
+// Create a new menu
+router.post("/", controller.createMenu);
 
 module.exports = router;

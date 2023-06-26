@@ -15,6 +15,26 @@ const handleError = require("../utils/apiUtils").handleError;
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
+
+// Create a new menu
+module.exports.createMenu = function(req, res) {
+    try {
+      const menuData = req.body;
+      // Paramètres verification
+      if (!menuData) {
+        throw new ApiError("Missing menu data", 400);
+      }
+      service.createMenu(menuData).then((result) => {
+        res.json(result);
+      }).catch((error) => {
+        handleError(error, res, "creating menu");
+      });
+    } catch (err) {
+      handleError(err, res, "creating menu");
+    }
+  };
+
+  
 // Retrieving menu data by ID
 module.exports.getById = function(req, res) {
     try {

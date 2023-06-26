@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import auth from './auth';
 
 Vue.use(Vuex);
 
@@ -8,14 +9,18 @@ export default new Vuex.Store({
     user: {
       loginStatus: false,
       userId: '',
-      usertype: 5,
       token: '',
       refresh: '',
+      role: '',
+      restaurantId: null,
     },
     basket: [],
   },
   mutations: {
-    SET_USER(state, status) {
+    setRestaurantId(state, restaurantId) {
+      state.user.restaurantId = restaurantId;
+    },
+    SET_AUTH_USER(state, status) {
       state.user = status;
     },
     SET_BASKET(state, itemId) {
@@ -25,9 +30,10 @@ export default new Vuex.Store({
       state.user = {
         loginStatus: false,
         userId: '',
-        usertype: 5,
         token: '',
         refresh: '',
+        role: '',
+        restaurantId: null,
       };
     },
     RESET_BASKET(state) {
@@ -35,8 +41,11 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    updateRestaurantId({ commit }, restaurantId) {
+      commit('setRestaurantId', restaurantId);
+    },
     fetchProfil(context, payload) {
-      context.commit('SET_USER', payload);
+      context.commit('SET_AUTH_USER', payload);
     },
     fetchBasket(context, payload) {
       context.commit('SET_BASKET', payload);
@@ -49,9 +58,12 @@ export default new Vuex.Store({
     },
   },
   modules: {
+    auth,
   },
   getters: {
     getUser: (state) => state.user,
     getBasket: (state) => state.basket,
+    isAuthenticated: (state) => state.user.loginStatus,
+    restaurantId: (state) => state.user.restaurantId,
   },
 });

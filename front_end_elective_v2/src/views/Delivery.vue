@@ -1,8 +1,8 @@
 <template>
   <div class='delivery'>
-    <Map />
+  <Map></Map>
     <v-alert dense type='info'>
-      Statu de la commande <strong>En cuisine</strong>
+      Statut de la commande <strong>En cuisine</strong>
     </v-alert>
   </div>
 </template>

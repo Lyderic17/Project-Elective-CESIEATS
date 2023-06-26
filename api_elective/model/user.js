@@ -13,7 +13,7 @@ class User {
     lastname;
     address = [];   // Reference to a list of Address objects
     billing = [];   // Reference to a list of Billing objects
-    
+    restaurantId;
     toJson = function() {
         const json = {};
         
@@ -25,6 +25,10 @@ class User {
         json["firstname"] = this.firstname;
         json["lastname"] = this.lastname;
         
+        if (this.usertype === 3) {
+            json["restaurantId"] = this.restaurantId;
+          }
+
         json["address"] = [];
         this.address.forEach((obj) => {
             json["address"].push(obj.toJson());

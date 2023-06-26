@@ -47,3 +47,10 @@ CREATE TABLE dbo.userbilling (
 	CONSTRAINT fk_billing_userid FOREIGN KEY (userid) REFERENCES dbo.users(id),
 	CONSTRAINT fk_billing_billingid FOREIGN KEY (billingid) REFERENCES dbo.billing(id)
 );
+-- Restaurants table creation
+CREATE TABLE dbo.restaurants (
+    id INT PRIMARY KEY IDENTITY(1, 1),
+    name VARCHAR(255) NOT NULL,
+    userId BIGINT NOT NULL,
+    CONSTRAINT fk_restaurants_users FOREIGN KEY (userId) REFERENCES dbo.users(id)
+);

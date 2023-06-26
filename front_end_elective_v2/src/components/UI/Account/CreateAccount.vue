@@ -1,5 +1,5 @@
 <template>
-  
+
 </template>
 
 <script lang="ts">
@@ -9,7 +9,7 @@ import Vue from 'vue';
 @Options({
   components: {},
   data: () => ({
-    
+
   }),
 })
 export default class CreateAccount extends Vue {}

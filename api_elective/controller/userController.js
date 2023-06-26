@@ -5,7 +5,7 @@
 
 // Importing the associated service
 const service = require("../service/userService");
-
+const Restaurant = require('../model/restaurant')
 // Importing the utils functions
 const handleError = require("../utils/apiUtils").handleError;
 
@@ -97,15 +97,28 @@ module.exports.post = function(req, res) {
         if (!address.country)       throw new ApiError("Missing mandatory parameter: country", 400);
         if (!address.zipcode)       throw new ApiError("Missing mandatory parameter: zipcode", 400);
 
-        service.post(user).then((id) => {
-            res.json({ "id": id });
-        }).catch((error) => {
+        service.post(user).then((userId) => {
+/*             if (user.usertype === 3) {
+              const restaurant = new Restaurant({
+                name: req.body["restaurantName"], // Récupérez le nom du restaurant depuis la requête
+                createdBy: userId
+              });
+      
+              // Enregistrement du restaurant dans la base de données
+              // Implémentez ici la logique pour enregistrer le restaurant dans votre base de données MSSQL
+              // Assurez-vous de lier l'utilisateur et le restaurant en utilisant l'ID de l'utilisateur
+      
+              res.json({ "id": userId });
+            } else {
+              res.json({ "id": userId });
+            } */
+          }).catch((error) => {
             handleError(error, res, "creating user");
-        });
-    } catch (err) {
-        handleError(err, res, "creating user");
-    }
-};
+          });
+        } catch (err) {
+          handleError(err, res, "creating user");
+        }
+      };
 
 // Updates an existing user
 module.exports.put = function(req, res) {

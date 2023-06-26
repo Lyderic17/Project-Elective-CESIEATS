@@ -23,4 +23,10 @@ router.post("/", controller.post);
 // Update an order
 router.put("/", controller.put);
 
+// Accepter une livraison
+router.put('/delivery/:orderId/accept', controller.acceptDelivery);
+
+// Refuser une livraison
+router.put('/delivery/:orderId/reject', controller.rejectDelivery);
+
 module.exports = router;

@@ -1,0 +1,161 @@
+- .env
+- .github
+  - workflows
+    - conf.yml
+- .gitignore
+- api_elective
+  - .gitignore
+  - access.log
+  - connector
+    - mongoConnector.js
+    - sqlConnector.js
+  - controller
+    - authenticationController.js
+    - DeliveryController.js
+    - menuController.js
+    - orderController.js
+    - restaurantController.js
+    - userController.js
+  - exception
+    - apiError.js
+  - main.js
+  - model
+    - address.js
+    - billing.js
+    - delivery.js
+    - DeliveryPersonPos.js
+    - image.js
+    - menu.js
+    - opening.js
+    - order.js
+    - price.js
+    - restaurant.js
+    - user.js
+  - package-lock.json
+  - package.json
+  - README.md
+  - route
+    - DeliveryManPos.js
+    - menuRoute.js
+    - orderRoute.js
+    - restaurantRoute.js
+    - userRoute.js
+  - service
+    - authenticationService.js
+    - menuService.js
+    - orderService.js
+    - restaurantService.js
+    - userService.js
+  - swagger
+    - swagger.yaml
+  - utils
+    - apiUtils.js
+- database-mongodb
+  - import.bat
+  - menu.json
+  - order.json
+  - restaurant.json
+- database-sql
+  - cleanup.sql
+  - insert.sql
+  - procedures.sql
+  - queries.sql
+  - setup.sql
+- env.cmd
+- front_end_elective_v2
+  - .editorconfig
+  - .gitignore
+  - babel.config.js
+  - dist
+    - favicon.ico
+    - index.html
+    - js
+      - 0.js
+      - 1.js
+      - 2.js
+      - 3.js
+      - 4.js
+      - 5.js
+      - 6.js
+      - 7.js
+      - 8.js
+      - 9.js
+      - app.js
+      - chunk-vendors.js
+  - package-lock.json
+  - package.json
+  - public
+    - favicon.ico
+    - index.html
+  - README.md
+  - src
+    - App.vue
+    - assets
+      - logo.png
+      - logo.svg
+    - components
+      - HelloWorld.vue
+      - UI
+        - Account
+          - CreateAccount.vue
+        - Cart
+          - DeliveryInfos.vue
+          - OrderInCart.vue
+        - DeliveryMan
+          - DeliveryCard.vue
+          - DeliveryMap.vue
+        - Dishes
+          - OrderCard.vue
+          - PlatCard.vue
+        - Home
+          - RestoCard.vue
+        - HomeBar
+          - HomeBar.vue
+        - Login
+          - forgottenPassword.vue
+        - Map
+          - Icons.vue
+          - Map.vue
+        - Order
+          - OrderButton.vue
+          - OrderForm.vue
+    - main.ts
+    - plugins
+      - vuetify.ts
+    - router
+      - index.ts
+    - shims-tsx.d.ts
+    - shims-vue.d.ts
+    - shims-vuetify.d.ts
+    - store
+      - auth.d.ts
+      - auth.js
+      - index.ts
+    - views
+      - Account.vue
+      - Cart.vue
+      - ClientDashboard.vue
+      - CreateMenu.vue
+      - Dashboard.vue
+      - Delivery.vue
+      - DeliveryAcceptOrder.vue
+      - DeliveryAvailableOrders.vue
+      - DeliveryCurrentOrders.vue
+      - DeliveryDashboard.vue
+      - DeliveryFinishOrder.vue
+      - DeliveryMan.vue
+      - Dishes.vue
+      - Home.vue
+      - Login.vue
+      - Register.vue
+      - RestaurantDashboard.vue
+  - tsconfig.json
+  - vue.config.js
+- package-lock.json
+- package.json
+- project_structure.text
+- README.md
+- ressources
+  - pages et accès.xlsx
+- websocket.js
+- X509-cert-1119002791897168537.pem

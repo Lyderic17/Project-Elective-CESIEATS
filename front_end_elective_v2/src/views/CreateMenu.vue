@@ -95,11 +95,15 @@
 import Options from 'vue-class-component';
 import Vue from 'vue';
 import axios from 'axios';
+import { mapGetters } from 'vuex';
 
-axios.defaults.baseURL = 'localhost:3000';
+axios.defaults.baseURL = 'http://localhost:3000';
 
 @Options({
   components: {},
+  computed: {
+    ...mapGetters(['getUserRole']),
+  },
   data() {
     return {
       new_menu_name: null,
@@ -108,46 +112,71 @@ axios.defaults.baseURL = 'localhost:3000';
       new_element2: null,
       new_element3: null,
       new_price: null,
+      otherRules: [],
     };
   },
   methods: {
+    async createMenu() {
+      try {
+        const menuData = {
+          name: this.new_menu_name,
+          image: {
+            url: this.new_image_path,
+            alt: 'Menu Image',
+          },
+          elements: [this.new_element1, this.new_element2, this.new_element3],
+          price: parseFloat(this.new_price),
+        };
+
+        const accessToken = localStorage.getItem('accessToken'); // Récupérer le jeton d'accès depuis le localStorage ou d'une autre manière appropriée
+        console.log(accessToken, 'accessToken RESTAURATEUR');
+        const response = await axios.post('/menu', menuData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        console.log(response.data.message); // Affiche "Menu created successfully"
+
+        // Effectuez les actions nécessaires après la création du plat
+
+        // Réinitialisez les champs du formulaire
+        this.new_menu_name = null;
+        this.new_image_path = null;
+        this.new_element1 = null;
+        this.new_element2 = null;
+        this.new_element3 = null;
+        this.new_price = null;
+      } catch (error) {
+        console.error('Error creating menu:', error.response.data.error);
+      }
+    },
+
     redirect(path) {
       if (this.$route.path !== path) {
         this.$router.push(path).catch();
       }
     },
-    async validate() {
-      this.redirect('/account');
-      // this.$refs.form.validate();
-      // if (
-      //   this.new_menu_name != null
-      //   && this.new_image_path != null
-      //   && this.new_element1 != null
-      //   && this.new_price != null
-      // ) {
-      //   this.data = {
-      //     name: this.new_name,
-      //     image: {
-      //       url: this.new_image_path,
-      //       name: 'dqz',
-      //     },
-      //     price: this.new_price,
-      //     item: [
-      //       this.new_element1,
-      //       this.new_element2,
-      //       this.new_element3,
-      //     ],
-      //   };
-      //   // this.new_phoneNumber;
-      //   this.postNewAccount(this.data);
-      // }
+    validate() {
+      // Vérifiez les champs du formulaire avant d'appeler createMenu
+      if (
+        this.new_menu_name != null
+        && this.new_image_path != null
+        && this.new_element1 != null
+        && this.new_price != null
+      ) {
+        this.createMenu();
+      }
     },
-    async postNewAccount(data) {
-      // const response = await axios.post('/user/', data);
-      // if (response.status === 204) {
-      //   this.redirect('/login');
-      // }
-    },
+  },
+  beforeMount() {
+    console.Log(this.$store.getters.getUser.getUserRole, 'role restauman');
+    const user = this.$store.getters.getUser.getUserRole;
+    const isRestaurateur = user === '3'; // Vérifiez si l'utilisateur a le rôle de restaurateur
+
+    if (!isRestaurateur) {
+      // Redirigez l'utilisateur vers une autre page s'il n'est pas un restaurateur
+      this.redirect('/access-denied');
+    }
   },
 })
 export default class CreateMenu extends Vue {}

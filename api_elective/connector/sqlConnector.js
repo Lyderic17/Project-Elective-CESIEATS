@@ -1,8 +1,3 @@
-/* 
- * The code containing the connection procedures to the Microsoft SQL database.
- * Author	: Rubisetcie
- */
-
 // Importing the Tedious components
 const Connection = require("tedious").Connection;
 const Request = require("tedious").Request;  
@@ -17,15 +12,15 @@ const Billing = require("../model/billing");
 const ApiError = require("../exception/apiError");
 
 // Connection constants
-const HOST = process.env.SQL_HOST;
-const USERNAME = process.env.SQL_USERNAME;
-const PASSWORD = process.env.SQL_PASSWORD;
+const HOST = process.env.SQL_HOST || "PC-LYDERIC";
+const USERNAME = 'SQL-Lyderic';
+const PASSWORD = "Lyd170701";
 
 // Options for the connection
 const config = {
     server: HOST,
     authentication: {
-        type: "default",
+        type: "default",    
         options: {
             userName: USERNAME,
             password: PASSWORD
@@ -34,7 +29,9 @@ const config = {
     options: {
         encrypt: true,
         rowCollectionOnRequestCompletion: true,
-        database: "SQL-Elective"
+        database: "master",
+        trustServerCertificate: true,
+        integratedSecurity: true,
     }
 };
 
@@ -48,7 +45,44 @@ connection.on("connect", function(err) {
         console.log("Connected to Microsoft SQL Database");
     }
 });
-
+// Create restaurant
+module.exports.createRestaurant = function (restaurantData) {
+    return new Promise((resolve, reject) => {
+      const { name, userId, restaurantId } = restaurantData;
+  console.log(restaurantData, 'hihih')
+      // Vérifier que userId et restaurantId sont des nombres entiers valides
+      if (!Number.isInteger(userId) || userId <= 0 || !Number.isInteger(restaurantId) || restaurantId <= 0) {
+        reject(new Error("Invalid userId or restaurantId"));
+        return;
+      }
+  
+      const query = 'INSERT INTO dbo.restaurants ("name", "userId") VALUES (@name, @userId); SELECT SCOPE_IDENTITY() AS "restaurantId";';
+  
+      const request = new Request(query, function (err, rowCount, rows) {
+        try {
+          if (err) throw err;
+  
+          if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
+  
+          console.log("Request finished");
+  
+          const restaurantId = rows[0].restaurantId.value;
+          console.log(restaurantId)
+          resolve(restaurantId);
+        } catch (err) {
+          reject(err);
+        }
+      });
+  
+      // Ajouter les paramètres de requête
+      request.addParameter("name", Types.VarChar, name);
+      request.addParameter("userId", Types.Int, userId);
+  
+      connection.execSql(request);
+    });
+  };
+  
+  
 // Select user by ID
 module.exports.selectUserById = function(id) {
     return new Promise((resolve, reject) => {
@@ -96,6 +130,12 @@ module.exports.selectOneUser = function(email) {
 
                 console.log(rowCount + " rows returned");
 
+                // Vérification du rôle de l'utilisateur
+             /*    if (user.usertype !== 5) {
+                    // Si l'usertype n'est pas 5 (User), l'utilisateur n'a pas le rôle attendu
+                    throw new ApiError("Unauthorized access", 403);
+                } */
+
                 resolve(user);
             } catch (err) {
                 reject(err);
@@ -109,46 +149,89 @@ module.exports.selectOneUser = function(email) {
     });
 };
 
+
 // Insert user
-module.exports.insertUser = function(user) {
+module.exports.insertUser = function (user) {
     return new Promise((resolve, reject) => {
-        const statement = 'DECLARE @return_id INT; EXECUTE @return_id = dbo.createUser @username, @usertype, @email, @password, @firstname, @lastname, @country, @zipcode, @city, @address, @number, @crypto, @owner; SELECT "Return" = @return_id;';
-
-        const request = new Request(statement, function(err, rowCount, rows) {
-            try {
-                if (err)
-                    throw err;
-                
-                if (rowCount <= 0)
-                    throw new ApiError("Statement returned no rows", 400);
-                
-                console.log("Request finished");
-
-                resolve(rows[0][0].value);
-            } catch (err) {
-                reject(err);
-            }
-        });
-        
-        // Request parameters
-        request.addParameter("username", Types.VarChar, user.username);
-        request.addParameter("usertype", Types.TinyInt, user.usertype);
-        request.addParameter("email", Types.VarChar, user.email);
-        request.addParameter("password", Types.VarChar, user.password);
-        request.addParameter("firstname", Types.VarChar, user.firstname);
-        request.addParameter("lastname", Types.VarChar, user.lastname);
-        request.addParameter("country", Types.VarChar, user.address.country);
-        request.addParameter("zipcode", Types.VarChar, user.address.zipcode);
-        request.addParameter("city", Types.VarChar, user.address.city);
-        request.addParameter("address", Types.VarChar, user.address.address);
-        request.addParameter("number", Types.Char, user.billing.number);
-        request.addParameter("crypto", Types.Char, user.billing.crypto);
-        request.addParameter("owner", Types.VarChar, user.billing.owner);
-
-        connection.execSql(request);
+      const statement = `
+        DECLARE @return_id INT;
+        EXECUTE @return_id = dbo.createUser
+          @username,
+          @usertype,
+          @email,
+          @password,
+          @firstname,
+          @lastname,
+          @country,
+          @zipcode,
+          @city,
+          @address,
+          @number,
+          @crypto,
+          @owner,
+          @restaurantId OUTPUT;
+        SELECT @return_id AS userId, @restaurantId AS restaurantId;
+      `;
+  
+      const request = new Request(statement, function (err, rowCount, rows) {
+        try {
+          if (err) throw err;
+  
+          if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
+  
+          console.log("Request finished");
+  
+          const userId = rows[0].userId;
+          const restaurantId = rows[0].restaurantId;
+          console.log(restaurantId, 'checkme here');
+          resolve({ userId, restaurantId });
+        } catch (err) {
+          reject(err);
+        }
+      });
+  
+      // Request parameters
+      request.addParameter("username", Types.VarChar, user.username);
+      request.addParameter("usertype", Types.TinyInt, user.usertype);
+      request.addParameter("email", Types.VarChar, user.email);
+      request.addParameter("password", Types.VarChar, user.password);
+      request.addParameter("firstname", Types.VarChar, user.firstname);
+      request.addParameter("lastname", Types.VarChar, user.lastname);
+      request.addParameter("country", Types.VarChar, user.address.country);
+      request.addParameter("zipcode", Types.VarChar, user.address.zipcode);
+      request.addParameter("city", Types.VarChar, user.address.city);
+      request.addParameter("address", Types.VarChar, user.address.address);
+      request.addParameter("number", Types.Char, user.billing.number);
+      request.addParameter("crypto", Types.Char, user.billing.crypto);
+      request.addParameter("owner", Types.VarChar, user.billing.owner);
+  
+      // Ajout du paramètre restaurantId
+      if (user.usertype === 3) {
+        // Ici, vous devez obtenir l'ID du restaurant correspondant en fonction des informations de l'utilisateur
+        const restaurantId = getRestaurantId(user);
+        console.log(restaurantId, 'HERE RESTAU ID HERHEHREH');
+        request.addOutputParameter("restaurantId", Types.Int, restaurantId); // Ajout du paramètre de sortie pour restaurantId
+      } else {
+        request.addParameter("restaurantId", Types.Int, null); // Utilisation du paramètre restaurantId comme paramètre d'entrée
+      }
+  
+      // Exécution de la requête SQL
+      connection.execSql(request);
     });
-};
+  };
+  
 
+    function getRestaurantId(user) {
+        // Vérifier si l'utilisateur est un restaurateur
+        if (user.usertype === 3) {
+            // Récupérer l'ID du restaurant en fonction des informations de l'utilisateur
+            // Par exemple, si l'utilisateur a un champ "restaurantId" dans son objet user, vous pouvez simplement le renvoyer
+            return user.restaurantId;
+        } else {
+            // Si l'utilisateur n'est pas un restaurateur, renvoyer null ou une valeur par défaut appropriée
+            return null;
+        }
+    }
 // Update user
 module.exports.updateUser = function(user) {
     return new Promise((resolve, reject) => {

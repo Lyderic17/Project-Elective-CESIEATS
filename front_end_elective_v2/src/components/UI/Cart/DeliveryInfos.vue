@@ -31,7 +31,7 @@ import Vue from 'vue';
     new_complement: null,
     otherRules: [
       (v) => (!!v) || 'Requis',
-      (v) => (v && v.length <= 10) || "Doit étre d'au moins 10 charaters",
+      /* (v) => (v && v.length <= 10) || "Doit étre d'au moins 10 characters", */
     ],
   }),
   props: {

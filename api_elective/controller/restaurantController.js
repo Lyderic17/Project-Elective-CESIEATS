@@ -1,13 +1,6 @@
-/* 
- * The code containing functions associated with the Restaurant's requests.
- * Author	: Rubisetcie
- */
-
-// Importing the connector components
-const ObjectID = require("mongodb").ObjectID;
-
 // Importing the associated service
 const service = require("../service/restaurantService");
+const Restaurant = require('../model/restaurant');
 
 // Importing the utils functions
 const handleError = require("../utils/apiUtils").handleError;
@@ -18,7 +11,7 @@ const ApiError = require("../exception/apiError");
 // Retrieving restaurant data by ID
 module.exports.getById = function(req, res) {
     try {
-        const id = req.params.id ? new ObjectID(req.params.id) : null;
+        const id = req.params.id;
 
         // Paramters verification
         if (!id)
@@ -27,10 +20,10 @@ module.exports.getById = function(req, res) {
         service.getById(id).then((result) => {
             res.json(result.toJson());
         }).catch((error) => {
-            handleError(error, res, "retrieving resturant");
+            handleError(error, res, "retrieving restaurant");
         });
     } catch (err) {
-        handleError(err, res, "retrieving resturant");
+        handleError(err, res, "retrieving restaurant");
     }
 };
 
@@ -53,21 +46,19 @@ module.exports.getAll = function(req, res) {
             if (offset < 1)     throw new ApiError("Parameter below accepted value: offset below 1", 400);
         }
         
+        let query = {};
+
         if (status) {
-            if (!Array.isArray(status))
-                throw new ApiError("Parameter type not recognized: status", 400);
+            query.status = { $in: status };
         }
         
-        service.getAll(limit, offset, status).then((result) => {
-            const json = [];
-            result.forEach((r) => {
-                json.push(r.toJson());
-            });
+        Restaurant.find(query).limit(limit).skip(offset).then((result) => {
+            const json = result.map((r) => r.toJson());
             res.json(json);
         }).catch((error) => {
-            handleError(error, res, "retrieving resturant");
+            handleError(error, res, "retrieving restaurant");
         });
     } catch (err) {
-        handleError(err, res, "retrieving resturant");
+        handleError(err, res, "retrieving restaurant");
     }
 };

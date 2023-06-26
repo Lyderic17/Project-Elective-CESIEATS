@@ -1,43 +1,40 @@
-/* 
- * The object representing a Restaurant.
- * Author	: Rubisetcie
- */
+const mongoose = require('mongoose');
+const Menu = require('./menu');
 
-class Restaurant {
-    id;
-    name;
-    address;        // Reference to an Address object
-    status;
-    image;          // Reference to an Image object
-    openings = [];  // Reference to a list of Opening objects
-    tags = [];
-    description;
-    menus = [];     // Reference to a list of Menu objects
-    
-    toJson = function() {
-        const json = {};
-        
-        json["id"] = this.id;
-        json["name"] = this.name;
-        json["address"] = this.address ? this.address.toJson() : null;
-        json["status"] = this.status;
-        json["image"] = this.image ? this.image.toJson() : null;
-        
-        json["openings"] = [];
-        this.openings.forEach((obj) => {
-            json["openings"].push(obj.toJson());
-        });
-        
-        json["tags"] = this.tags;
-        json["description"] = this.description;
-        
-        json["menus"] = [];
-        this.menus.forEach((obj) => {
-            json["menus"].push(obj.toJson());
-        });
+const restaurantSchema = new mongoose.Schema({
+  name: String,
+  address: {
+    country: String,
+    zipcode: String,
+    city: String,
+    address: String
+  },
+  status: String,
+  image: {
+    url: String,
+    alt: String
+  },
+  openings: [{ open: String, close: String }],
+  tags: [String],
+  description: String,
+  menus: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // Added createdBy field to associate the restaurant with the user
+}, { collection: 'restaurants' });
 
-        return json;
-    }
-}
+restaurantSchema.methods.toJson = function() {
+  return {
+    id: this._id,
+    name: this.name,
+    address: this.address,
+    status: this.status,
+    image: this.image,
+    openings: this.openings,
+    tags: this.tags,
+    description: this.description,
+    menus: this.menus
+  };
+};
+
+const Restaurant = mongoose.model('Restaurant', restaurantSchema);
 
 module.exports = Restaurant;

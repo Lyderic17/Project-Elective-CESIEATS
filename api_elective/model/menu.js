@@ -1,26 +1,15 @@
-/* 
- * The object representing a Menu.
- * Author	: Rubisetcie
- */
+const mongoose = require('mongoose');
 
-class Menu {
-    id;
-    name;
-    image;          // Reference to an Image object
-    price;          // Reference to a Price object
-    items = [];
-    
-    toJson = function() {
-        const json = {};
-        
-        json["id"] = this.id;
-        json["name"] = this.name;
-        json["image"] = this.image ? this.image.toJson() : null;
-        json["price"] = this.price ? this.price.toJson() : null;
-        json["items"] = this.items;
+const menuSchema = new mongoose.Schema({
+  name: String,
+  image: {
+    url: String,
+    alt: String
+  },
+  elements: [String],
+  price: { type: mongoose.Schema.Types.ObjectId, ref: 'Price' }
+});
 
-        return json;
-    }
-}
+const Menu = mongoose.model('Menu', menuSchema);
 
 module.exports = Menu;

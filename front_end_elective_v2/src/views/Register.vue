@@ -1,25 +1,22 @@
 <template>
-  <v-row justify='center' style='margin: 80px'>
-    <v-col cols='12' sm='8'>
-      <v-form
-        ref='form'
-        lazy-validation
-      >
+  <v-row justify="center" style="margin: 80px">
+    <v-col cols="12" sm="8">
+      <v-form ref="form" lazy-validation>
         <v-card>
-          <v-card-title class='cyan darken-1'>
-            <span class='text-h5 white--text'>
+          <v-card-title class="cyan darken-1">
+            <span class="text-h5 white--text">
               <v-text-field
                 dark
-                label='Nom'
-                v-model='new_name'
+                label="Nom"
+                v-model="new_name"
                 required
-                class='text-h5'
+                class="text-h5"
               ></v-text-field>
               <v-text-field
                 dark
-                label='Prénom'
-                v-model='new_lastname'
-                class='text-h5'
+                label="Prénom"
+                v-model="new_lastname"
+                class="text-h5"
                 required
               ></v-text-field>
             </span>
@@ -34,10 +31,10 @@
 
               <v-list-item-content>
                 <v-text-field
-                  label='Numéro de téléphone'
-                  v-model='new_phoneNumber'
+                  label="Numéro de téléphone"
+                  v-model="new_phoneNumber"
                   required
-                  :rules='otherRules'
+                  :rules="otherRules"
                 ></v-text-field>
               </v-list-item-content>
             </v-list-item>
@@ -48,47 +45,51 @@
               </v-list-item-action>
 
               <v-list-item-content>
-                <v-text-field label='Email'
-                :rules='emailRules'
-                v-model='new_email'
-                required>
-              </v-text-field>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-action>
-                <v-icon>mdi-lock</v-icon>
-              </v-list-item-action>
-
-              <v-list-item-content>
                 <v-text-field
-                label='Mot de passe'
-                v-model='new_password'
-                :rules='passwordRules'
-                :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                :type="show ? 'text' : 'password'"
-                @click:append='show = !show'
-                required
-                > </v-text-field>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-action>
-                <v-icon>mdi-lock</v-icon>
-              </v-list-item-action>
-
-              <v-list-item-content>
-                <v-text-field
-                  label='Confirmer mot de passe'
-                  v-model='new_password_check'
-                  :rules='passwordRules'
-                  :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                  :type="show ? 'text' : 'password'"
-                  @click:append='show = !show'
+                  label="Email"
+                  :rules="emailRules"
+                  v-model="new_email"
                   required
                 ></v-text-field>
               </v-list-item-content>
             </v-list-item>
+
+            <v-list-item>
+              <v-list-item-action>
+                <v-icon>mdi-lock</v-icon>
+              </v-list-item-action>
+
+              <v-list-item-content>
+                <v-text-field
+                  label="Mot de passe"
+                  v-model="new_password"
+                  :rules="passwordRules"
+                  :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                  :type="show ? 'text' : 'password'"
+                  @click:append="show = !show"
+                  required
+                ></v-text-field>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-action>
+                <v-icon>mdi-lock</v-icon>
+              </v-list-item-action>
+
+              <v-list-item-content>
+                <v-text-field
+                  label="Confirmer mot de passe"
+                  v-model="new_password_check"
+                  :rules="passwordRules"
+                  :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
+                  :type="show ? 'text' : 'password'"
+                  @click:append="show = !show"
+                  required
+                ></v-text-field>
+              </v-list-item-content>
+            </v-list-item>
+
             <v-list-item>
               <v-list-item-action>
                 <v-icon>mdi-map-marker</v-icon>
@@ -96,36 +97,49 @@
 
               <v-list-item-content>
                 <v-text-field
-                  label='Addresse'
-                  v-model='new_address'
-                  :rules='otherRules'
+                  label="Adresse"
+                  v-model="new_address"
+                  :rules="otherRules"
                   required
                 ></v-text-field>
               </v-list-item-content>
             </v-list-item>
+
             <v-list-item>
               <v-list-item-action>
                 <v-icon>mdi-account-multiple</v-icon>
               </v-list-item-action>
 
               <v-list-item-content>
-                <v-text-field label='Code parrainage'></v-text-field>
+                <v-text-field label="Code parrainage"></v-text-field>
               </v-list-item-content>
             </v-list-item>
+
             <v-list-item>
               <v-list-item-action>
                 <v-icon>mdi-credit-card</v-icon>
               </v-list-item-action>
 
               <v-list-item-content>
-                <v-btn outlined text @click='editCard()'>
+                <v-btn outlined text @click="editCard()">
                   Ajouter une carte
                 </v-btn>
               </v-list-item-content>
             </v-list-item>
+
+            <v-list-item>
+              <v-list-item-action>
+                <v-icon>mdi-account</v-icon>
+              </v-list-item-action>
+
+              <v-list-item-content>
+                <v-select v-model="new_role" :items="roles" label="Rôle" outlined></v-select>
+              </v-list-item-content>
+            </v-list-item>
           </v-list>
-          <div class='d-flex justify-space-around' style='padding-bottom: 15px'>
-            <v-btn outlined rounded text @click='validate()'> Valider </v-btn>
+
+          <div class="d-flex justify-space-around" style="padding-bottom: 15px">
+            <v-btn outlined rounded text @click="validate()">Valider</v-btn>
           </div>
         </v-card>
       </v-form>
@@ -153,6 +167,8 @@ axios.defaults.baseURL = 'http://localhost:3000';
       new_address: null,
       new_password: null,
       new_password_check: null,
+      new_role: null, // Nouvelle propriété pour stocker le rôle
+      roles: ['0', '1', '2', '3', '4', '5'], // Options de rôle
       data: null,
       otherRules: [
         (v) => (!!v) || 'Requis',
@@ -179,7 +195,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
       if (this.new_password != null && this.new_password === this.new_password_check) {
         this.data = {
           username: this.new_name + this.new_lastname,
-          usertype: 5,
+          usertype: this.new_role,
           email: this.new_email,
           password: await this.cryptPassword(this.new_password),
           firstname: this.new_name,
@@ -207,10 +223,14 @@ axios.defaults.baseURL = 'http://localhost:3000';
       return hash;
     },
     async postNewAccount(data) {
-      const response = await axios.post('/user/', data);
-      console.log(response.status);
-      if (response.status === 200) {
-        this.redirect('/login');
+      try {
+        const response = await axios.post('/user/', data);
+        console.log(response.status);
+        if (response.status >= 200 && response.status < 300) {
+          this.redirect('/login');
+        }
+      } catch (error) {
+        console.error(error);
       }
     },
   },

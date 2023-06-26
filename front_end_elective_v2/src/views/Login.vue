@@ -110,21 +110,23 @@ axios.defaults.baseURL = 'http://localhost:3000';
       console.log(d);
       if (d.status === 200) {
         this.dataToken = d.data.accessToken;
+        localStorage.setItem('accessToken', d.data.accessToken);
         axios.defaults.headers.common.Authorization = `Bearer ${d.data.accessToken}`;
         const response = await axios.get(`/user/one/?email=${this.new_email}`);
-        // if (response.data.password) {
-        //   const pswv = await bcrypt.compare(this.new_password, response.data.password);
-        // if (pswv) {
-        this.$store.dispatch('fetchProfil', {
-          loginStatus: true,
-          userId: response.data.id,
-          usertype: response.data.usertype,
-          token: d.data.accessToken,
-          refresh: d.data.refreshToken,
-        });
-        this.$router.push('/');
-        //   }
-        // }
+        if (response.data.password) {
+          const pswv = await bcrypt.compare(this.new_password, response.data.password);
+          if (pswv) {
+            this.$store.dispatch('fetchProfil', {
+              loginStatus: true,
+              userId: response.data.id,
+              usertype: response.data.usertype,
+              token: d.data.accessToken,
+              refresh: d.data.refreshToken,
+            });
+            console.log(this.$store, 'store');
+            this.$router.push('/');
+          }
+        }
       }
     },
     changePassword() {

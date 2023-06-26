@@ -1,11 +1,8 @@
-/* 
- * The code containing the connection procedures to the MongoDB database.
- * Author	: Rubisetcie
- */
 
 // Importing the connector components
-const MongoClient = require("mongodb").MongoClient;
-
+// Import mongoose.Types.ObjectId for id conversion
+const { ObjectId } = require('mongoose').Types;
+const mongoose = require('mongoose');
 // Importing the models
 const Restaurant = require("../model/restaurant");
 const Menu = require("../model/menu");
@@ -19,21 +16,23 @@ const Image = require("../model/image");
 const ApiError = require("../exception/apiError");
 
 // Connection constants
-const HOST = process.env.MONGO_HOST;
-const DATABASE = process.env.MONGO_DATABASE;
+/* const HOST = process.env.MONGO_HOST || "mongodb+srv://lyderic1:JbL86LYjSuPkSAoQ@cluster0corbeille.j2rawlj.mongodb.net/?retryWrites=true&w=majority";
+const DATABASE = process.env.MONGO_DATABASE || "Elective"; */
 
-const client = new MongoClient(HOST, {
+/* // Connect to MongoDB
+mongoose.connect(`${HOST}/${DATABASE}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-});
-
-// Select restaurant by ID
-module.exports.selectRestaurantById = function(id) {
+  }).then(() => {
+    console.log('Connected to MongoDB');
+  }).catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  }); */
+  module.exports.selectRestaurantById = function(id) {
     return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
+        Restaurant.aggregate([
             {
-                $match: { _id: id }
+                $match: { _id: ObjectId(id) }
             },
             {
                 $lookup: {
@@ -43,392 +42,190 @@ module.exports.selectRestaurantById = function(id) {
                     as: "menus"
                 }
             }
-        ];
-        
-        db.collection("restaurants").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                if (!await result.hasNext())
-                    throw new ApiError("Query returned nothing", 400);
-                
-                const restaurant = deserializeRestaurant(await result.next());
-                
-                console.log("Request finished");
-
-                resolve(restaurant);
-            } catch (err) {
+        ]).exec((err, result) => {
+            if (err) {
                 reject(err);
+            } else if (!result.length) {
+                reject(new ApiError("Query returned nothing", 400));
+            } else {
+                const restaurant = deserializeRestaurant(result[0]);
+                console.log("Request finished");
+                resolve(restaurant);
             }
         });
     });
 };
 
-// Select restaurant
-module.exports.selectRestaurant = function(limit, offset, status) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
-            {
-                $lookup: {
-                    from: "menus",
-                    localField: "menus._id",
-                    foreignField: "_id",
-                    as: "menus"
-                }
-            },
-            {
-                $sort: { _id: 1 }
-            }
-        ];
-        
+module.exports.selectRestaurant = async function(limit, offset, status) {
+    try {
+        let query = Restaurant.find();
+
         // Filter by status
         if (status) {
-            const statusFilter = [];
-            status.forEach((s) => {statusFilter.push({ status: s });});
-            query.unshift({
-                $match: {
-                    $or: statusFilter
-                }
-            });
+            query = query.where('status').in(status);
         }
-        
+
         // Offset handling
-        if (offset)
-            query.push({ $skip: offset });
+        if (offset) {
+            query = query.skip(offset);
+        }
 
         // Limit handling
-        if (limit)
-            query.push({ $limit: limit });
-        
-        db.collection("restaurants").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const restaurants = [];
-                var count = 0;  // Counter for retrieved rows
+        if (limit) {
+            query = query.limit(limit);
+        }
 
-                while (await result.hasNext())
-                {
-                    restaurants.push(deserializeRestaurant(await result.next()));
-                    count++;
-                }
-                
-                console.log(count + " rows returned");
+        // Execute the query and get the result
+        const results = await query.sort({ _id: 1 }).populate('menus').exec();
 
-                resolve(restaurants);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        const restaurants = results.map(deserializeRestaurant);
+        console.log(`${restaurants.length} rows returned`);
+
+        return restaurants;
+    } catch (err) {
+        throw err;
+    }
 };
-
 // Select menu by ID
-module.exports.selectMenuById = function(id) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = { _id: id };
-        
-        db.collection("menus").findOne(query, function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const menu = deserializeMenu(result);
-                
-                console.log("Request finished");
+module.exports.selectMenuById = async function(id) {
+    try {
+        const result = await Menu.findById(id).exec();
 
-                resolve(menu);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        if (!result) {
+            throw new ApiError("Query returned nothing", 400);
+        }
+
+        const menu = deserializeMenu(result);
+        console.log("Request finished");
+
+        return menu;
+    } catch (err) {
+        throw err;
+    }
 };
 
 // Select menu by restaurant ID
-module.exports.selectMenuByRestaurantId = function(id) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
-            {
-                $match: { _id: id }
-            },
-            {
-                $lookup: {
-                    from: "menus",
-                    localField: "menus._id",
-                    foreignField: "_id",
-                    as: "menus"
-                }
-            },
-            {
-		$unwind: "$menus"
-            },
-            {
-		$project:
-		{
-                    _id: "$menus._id",
-                    name: "$menus.name",
-                    image: "$menus.image",
-                    price: "$menus.price",
-                    items: "$menus.items"
-		}
-            },
-            {
-                $sort: { _id: 1 }
-            }
-        ];
-        
-        db.collection("restaurants").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const menus = [];
-                var count = 0;  // Counter for retrieved rows
+module.exports.selectMenuByRestaurantId = async function(id) {
+    try {
+        const restaurant = await Restaurant.findById(id).populate('menus').exec();
 
-                while (await result.hasNext())
-                {
-                    menus.push(deserializeMenu(await result.next()));
-                    count++;
-                }
-                
-                console.log(count + " rows returned");
+        if (!restaurant) {
+            throw new ApiError("Query returned nothing", 400);
+        }
 
-                resolve(menus);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        const menus = restaurant.menus.map(deserializeMenu);
+        console.log(`${menus.length} rows returned`);
+
+        return menus;
+    } catch (err) {
+        throw err;
+    }
 };
 
 // Select menu
-module.exports.selectMenu = function(limit, offset) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        
-        db.collection("menus").find(async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                // Offset handling
-                if (offset)
-                    result.skip(offset);
+module.exports.selectMenu = async function(limit, offset) {
+    try {
+        let query = Menu.find();
 
-                // Limit handling
-                if (limit)
-                    result.limit(limit);
-                
-                const menus = [];
-                const count = await result.count(true);
+        // Offset handling
+        if (offset) {
+            query = query.skip(offset);
+        }
 
-                while (await result.hasNext())
-                    menus.push(deserializeMenu(await result.next()));
-                
-                console.log(count + " rows returned");
+        // Limit handling
+        if (limit) {
+            query = query.limit(limit);
+        }
 
-                resolve(menus);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        // Execute the query and get the result
+        const results = await query.exec();
+
+        const menus = results.map(deserializeMenu);
+        console.log(`${menus.length} rows returned`);
+
+        return menus;
+    } catch (err) {
+        throw err;
+    }
 };
 
 // Select order by client ID
-module.exports.selectOrderByClientId = function(id) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
-            {
-                $match: { clientId: id }
-            },
-            {
-                $lookup: {
-                    from: "menus",
-                    localField: "menus._id",
-                    foreignField: "_id",
-                    as: "menus"
-                }
-            },
-            {
-                $sort: { clientId: 1 }
-            }
-        ];
-        
-        db.collection("orders").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const orders = [];
-                var count = 0;  // Counter for retrieved rows
-
-                while (await result.hasNext())
-                {
-                    orders.push(deserializeOrder(await result.next()));
-                    count++;
-                }
-                
-                console.log(count + " rows returned");
-
-                resolve(orders);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+module.exports.selectOrderByClientId = async function(id) {
+    try {
+        const orders = await Order.find({ clientId: id }).populate('menus').sort({ clientId: 1 }).exec();
+        const results = orders.map(deserializeOrder);
+        console.log(`${results.length} rows returned`);
+        return results;
+    } catch (err) {
+        throw err;
+    }
 };
 
 // Select order by restaurant ID
-module.exports.selectOrderByRestaurantId = function(id) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
-            {
-                $match: { restaurantId: id }
-            },
-            {
-                $lookup: {
-                    from: "menus",
-                    localField: "menus._id",
-                    foreignField: "_id",
-                    as: "menus"
-                }
-            },
-            {
-                $sort: { restaurantId: 1 }
-            }
-        ];
-        
-        db.collection("orders").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const orders = [];
-                var count = 0;  // Counter for retrieved rows
-
-                while (await result.hasNext())
-                {
-                    orders.push(deserializeOrder(await result.next()));
-                    count++;
-                }
-                
-                console.log(count + " rows returned");
-
-                resolve(orders);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+module.exports.selectOrderByRestaurantId = async function(id) {
+    try {
+        const orders = await Order.find({ restaurantId: id }).populate('menus').sort({ restaurantId: 1 }).exec();
+        const results = orders.map(deserializeOrder);
+        console.log(`${results.length} rows returned`);
+        return results;
+    } catch (err) {
+        throw err;
+    }
 };
 
 // Select order
-module.exports.selectOrder = function(limit, offset, clientId, status) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = [
-            {
-                $lookup: {
-                    from: "menus",
-                    localField: "menus._id",
-                    foreignField: "_id",
-                    as: "menus"
-                }
-            },
-            {
-                $sort: { _id: 1 }
-            }
-        ];
-        
-        const filter = [];
-        
-        // Filter by clientId
+module.exports.selectOrder = async function(limit, offset, clientId, status) {
+    try {
+        let query = Order.find();
+
+        // Apply client filter if provided
         if (clientId) {
-            filter.push({clientId: clientId});
+            query = query.where('clientId').equals(clientId);
         }
-        
-        // Filter by status
+
+        // Apply status filter if provided
         if (status) {
-            const statusFilter = [];
-            status.forEach((s) => {statusFilter.push({ status: s });});
-            filter.push({ $or: statusFilter });
+            query = query.where('status').in(status);
         }
-        
-        // Applying the filter
-        if (filter.length !== 0) {
-            query.unshift({
-                $match: {
-                    $and: filter
-                }
-            });
-        }
-        
+
         // Offset handling
-        if (offset)
-            query.push({ $skip: offset });
+        if (offset) {
+            query = query.skip(offset);
+        }
 
         // Limit handling
-        if (limit)
-            query.push({ $limit: limit });
-        
-        db.collection("orders").aggregate(query, async function(err, result) {
-            try {
-                if (err)
-                    throw err;
-                
-                const orders = [];
-                var count = 0;  // Counter for retrieved rows
+        if (limit) {
+            query = query.limit(limit);
+        }
 
-                while (await result.hasNext())
-                {
-                    orders.push(deserializeOrder(await result.next()));
-                    count++;
-                }
-                
-                console.log(count + " rows returned");
+        query = query.sort({ _id: 1 }).populate('menus');
 
-                resolve(orders);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        const results = await query.exec();
+        const orders = results.map(deserializeOrder);
+        console.log(`${orders.length} rows returned`);
+
+        return orders;
+    } catch (err) {
+        throw err;
+    }
 };
 
-// Insert order
-module.exports.insertOrder = function(order) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        
-        db.collection("orders").insertOne(order.toJson(), function(err) {
-            try {
-                if (err)
-                    throw err;
-                
-                console.log("Request finished");
 
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+
+// Insert order
+module.exports.insertOrder = async function(order) {
+    try {
+        const newOrder = new Order(order.toJson());
+        await newOrder.save();
+        console.log("Request finished");
+    } catch (err) {
+        throw err;
+    }
 };
 
-// Insert order
-module.exports.updateOrder = function(order) {
-    return new Promise((resolve, reject) => {
-        const db = client.db(DATABASE);
-        const query = { _id: order.id };
+// Update order
+module.exports.updateOrder = async function(order) {
+    try {
         const update = {};
         
         if (order.clientId)     update["clientId"] = order.clientId;
@@ -439,22 +236,25 @@ module.exports.updateOrder = function(order) {
         if (order.taxes)        update["taxes"] = order.taxes;
         if (order.menus)        update["menus"] = order.menus;
         if (order.assign)       update["assign"] = order.assign;
-        
-        db.collection("orders").updateOne(query, {$set: update}, function(err) {
-            try {
-                if (err)
-                    throw err;
-                
-                console.log("Request finished");
 
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+        await Order.updateOne({ _id: order.id }, { $set: update });
+        console.log("Request finished");
+    } catch (err) {
+        throw err;
+    }
 };
-
+// Create a new menu
+module.exports.createMenu = async function(menuData) {
+    try {
+      const menu = new Menu(menuData);
+      const result = await menu.save();
+      console.log("Menu created:", result);
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  };
+  
 // Creates a Restaurant object from JSON
 deserializeRestaurant = function(json) {
     const restaurant = new Restaurant;
@@ -575,10 +375,10 @@ deserializeOrder = function(json) {
 };
 
 // Trigger connection
-client.connect((err) => {
+/* client.connect((err) => {
     if (err) {
         console.error("Error while connecting to MongoDB Database", err);
     } else {
         console.log("Connected to MongoDB Database");
     }
-});
+}); */

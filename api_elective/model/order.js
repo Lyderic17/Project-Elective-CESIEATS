@@ -1,46 +1,16 @@
-/* 
- * The object representing an Order.
- * Author	: Rubisetcie
- */
+const mongoose = require('mongoose');
 
-// Importing the models
-const Menu = require("../model/menu");
+const orderSchema = new mongoose.Schema({
+  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurant', required: true },
+  address: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true },
+  date: { type: Date, default: Date.now },
+  status: { type: String, required: true },
+  taxes: { type: mongoose.Schema.Types.ObjectId, ref: 'Price' },
+  menus: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }],
+  assign: { type: String }
+});
 
-class Order {
-    id;
-    clientId;
-    restaurantId;
-    address;        // Reference to an Address object
-    date;
-    status;
-    taxes;          // Reference to a Price object
-    menus = [];     // Reference to a list of Menu objects
-    assign;
-    
-    toJson = function() {
-        const json = {};
-        
-        if (this.id)    json["id"] = this.id;
-        
-        json["clientId"] = this.clientId;
-        json["restaurantId"] = this.restaurantId;
-        json["address"] = this.address ? this.address.toJson() : null;
-        json["date"] = this.date ? this.date : null;
-        json["status"] = this.status;
-        json["taxes"] = this.taxes ? this.taxes.toJson() : null;
-        
-        json["menus"] = [];
-        this.menus.forEach((obj) => {
-            if (obj instanceof Menu)
-                obj = obj.toJson();
-            
-            json["menus"].push(obj);
-        });
-        
-        json["assign"] = this.assign;
-
-        return json;
-    }
-}
+const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;
