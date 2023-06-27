@@ -111,9 +111,23 @@
               </v-list-item-action>
 
               <v-list-item-content>
-                <v-text-field label="Code parrainage"></v-text-field>
+                <v-text-field label="Code parrainage" v-model="new_referer"></v-text-field>
               </v-list-item-content>
             </v-list-item>
+            <v-list-item>
+                <v-list-item-action>
+                  <v-icon>mdi-account-multiple</v-icon>
+                </v-list-item-action>
+
+                <v-list-item-content>
+                  <v-text-field
+                    label="Nombre de références"
+                    v-model="new_nbReferer"
+                    required
+                    :rules="otherRules"
+                  ></v-text-field>
+                </v-list-item-content>
+              </v-list-item>
 
             <v-list-item>
               <v-list-item-action>
@@ -146,7 +160,6 @@
     </v-col>
   </v-row>
 </template>
-
 <script>
 import Options from 'vue-class-component';
 import Vue from 'vue';
@@ -160,30 +173,33 @@ axios.defaults.baseURL = 'http://localhost:3000';
   data() {
     return {
       show: false,
-      new_name: null,
-      new_lastname: null,
-      new_phoneNumber: null,
-      new_email: null,
-      new_address: null,
-      new_password: null,
-      new_password_check: null,
-      new_role: null, // Nouvelle propriété pour stocker le rôle
-      roles: ['0', '1', '2', '3', '4', '5'], // Options de rôle
+      new_name: '',
+      new_lastname: '',
+      new_phoneNumber: '',
+      new_email: '',
+      new_address: '',
+      new_password: '',
+      new_password_check: '',
+      new_referer: '',
+      new_nbReferer: '', // Ajouter cette ligne
+      new_role: '',
+      roles: ['0', '1', '2', '3', '4', '5'],
       data: null,
       otherRules: [
         (v) => (!!v) || 'Requis',
-        (v) => (v && v.length >= 10) || 'Veuiller mettre une donnée valide',
+        (v) => (v && v.length >= 10) || 'Veuillez mettre une donnée valide',
       ],
       passwordRules: [
         (v) => (!!v) || 'Un mot de passe est requis',
-        (v) => (v && v.length >= 10) || "Un mot de passe doit étre d'au moins 10 charaters",
+        (v) => (v && v.length >= 10) || "Un mot de passe doit être d'au moins 10 caractères",
       ],
       emailRules: [
         (v) => (!!v) || 'Un E-mail est requis',
-        (v) => /.+@.+\..+/.test(v) || "L'e-mail n'est pas vailde",
+        (v) => /.+@.+\..+/.test(v) || "L'e-mail n'est pas valide",
       ],
     };
   },
+
   methods: {
     redirect(path) {
       if (this.$route.path !== path) {
@@ -192,32 +208,35 @@ axios.defaults.baseURL = 'http://localhost:3000';
     },
     async validate() {
       this.$refs.form.validate();
-      if (this.new_password != null && this.new_password === this.new_password_check) {
+      if (
+        this.new_password != null
+        && this.new_password === this.new_password_check
+        && this.new_name != null
+        && this.new_name.trim() !== ''
+        && this.new_phoneNumber != null
+        && this.new_phoneNumber.trim() !== ''
+        && this.new_nbReferer != null // Ajouter cette condition
+        && this.new_nbReferer.trim() !== '' // Ajouter cette condition
+      ) {
         this.data = {
-          username: this.new_name + this.new_lastname,
-          usertype: this.new_role,
-          email: this.new_email,
+          name: this.new_name.trim(),
+          lastname: this.new_lastname.trim(),
+          mail: this.new_email.trim(),
           password: await this.cryptPassword(this.new_password),
-          firstname: this.new_name,
-          lastname: this.new_lastname,
-          address: {
-            country: 'USA',
-            zipcode: '12345',
-            city: 'New York City',
-            address: this.new_address,
-          },
-          billing: {
-            number: '4242424242424272',
-            crypto: '420',
-            owner: this.new_name + this.new_lastname,
-          },
+          phone: this.new_phoneNumber.trim(),
+          referer: this.new_referer.trim(),
+          nb_referer: this.new_nbReferer.trim(), // Ajouter cette ligne
+          role: this.new_role.trim(),
+          rating: null,
+          address: this.new_address.trim(),
+          crea_date: new Date(),
         };
-        // this.new_phoneNumber;
+
         this.postNewAccount(this.data);
       }
     },
+
     async cryptPassword(myPlaintextPassword) {
-      // bcrypt.hash(myPlaintextPassword, 10).then((hash) => hash);
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(myPlaintextPassword, salt);
       return hash;

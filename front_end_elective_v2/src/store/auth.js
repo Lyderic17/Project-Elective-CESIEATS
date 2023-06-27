@@ -8,7 +8,14 @@ export default {
   },
   mutations: {
     SET_AUTH_USER(state, user) {
-      state.user = user;
+      state.user = {
+        loginStatus: true,
+        userId: user.userId,
+        token: user.token,
+        refresh: user.refresh,
+        role: user.role,
+        restaurantId: null,
+      };
     },
   },
   actions: {
@@ -16,6 +23,7 @@ export default {
       try {
         const response = await axios.post('/login', credentials);
         const { accessToken, refreshToken, user } = response.data;
+        console.log(user, 'USERE RHERERERE');
         // Stockez le jeton d'accès et le jeton de rafraîchissement dans le stockage local
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
@@ -37,7 +45,7 @@ export default {
   },
   getters: {
     getUserRole(state) {
-      return state.user ? state.user.usertype : null;
+      return state.user ? state.user.role : null;
     },
     hasPermission: (state) => (permission) => {
       // Vérifier si l'utilisateur a la permission spécifiée

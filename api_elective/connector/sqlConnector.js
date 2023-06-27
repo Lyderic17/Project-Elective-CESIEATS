@@ -29,7 +29,7 @@ const config = {
     options: {
         encrypt: true,
         rowCollectionOnRequestCompletion: true,
-        database: "master",
+        database: "projet_elective",
         trustServerCertificate: true,
         integratedSecurity: true,
     }
@@ -85,153 +85,114 @@ module.exports.createRestaurant = function (restaurantData) {
   
 // Select user by ID
 module.exports.selectUserById = function(id) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT dbo.users.id AS "id", "username", "usertype", "email", "password", "firstname", "lastname", "addressid", "country", "zipcode", "city", "address", "billingid", "number", "crypto", "owner" FROM dbo.users INNER JOIN dbo.useraddress ON dbo.useraddress.userid = dbo.users.id INNER JOIN dbo.address ON dbo.address.id = dbo.useraddress.addressid INNER JOIN dbo.userbilling ON dbo.userbilling.userid = dbo.users.id INNER JOIN dbo.billing ON dbo.billing.id = dbo.userbilling.billingid WHERE dbo.users.id = @id';
+  return new Promise((resolve, reject) => {
+      const query = 'SELECT user_ID AS "id", name, lastname, mail, password, phone, referer, nb_referer, role, rating, address, crea_date FROM users WHERE user_ID = @id';
 
-        const request = new Request(query, function(err, rowCount, rows) {
-            try {
-                if (err)
-                    throw err;
-                
-                if (rowCount <= 0)
-                    throw new ApiError("Query returned no rows", 400);
+      const request = new Request(query, function(err, rowCount, rows) {
+          try {
+              if (err)
+                  throw err;
+              
+              if (rowCount <= 0)
+                  throw new ApiError("Query returned no rows", 400);
 
-                const user = deserializeUser(rows);
+              const user = deserializeUser(rows);
 
-                console.log(rowCount + " rows returned");
+              console.log(rowCount + " rows returned");
 
-                resolve(user);
-            } catch (err) {
-                reject(err);
-            }
-        });
-        
-        // Request parameters
-        request.addParameter("id", Types.BigInt, id);
-
-        connection.execSql(request);
-    });
-};
-
-// Select user by email
-module.exports.selectOneUser = function(email) {
-    return new Promise((resolve, reject) => {
-        const query = 'SELECT dbo.users.id AS "id", "username", "usertype", "email", "password", "firstname", "lastname", "addressid", "country", "zipcode", "city", "address", "billingid", "number", "crypto", "owner" FROM dbo.users INNER JOIN dbo.useraddress ON dbo.useraddress.userid = dbo.users.id INNER JOIN dbo.address ON dbo.address.id = dbo.useraddress.addressid INNER JOIN dbo.userbilling ON dbo.userbilling.userid = dbo.users.id INNER JOIN dbo.billing ON dbo.billing.id = dbo.userbilling.billingid WHERE dbo.users.email LIKE @email';
-
-        const request = new Request(query, function(err, rowCount, rows) {
-            try {
-                if (err)
-                    throw err;
-                
-                if (rowCount <= 0)
-                    throw new ApiError("Query returned no rows", 400);
-
-                const user = deserializeUser(rows);
-
-                console.log(rowCount + " rows returned");
-
-                // Vérification du rôle de l'utilisateur
-             /*    if (user.usertype !== 5) {
-                    // Si l'usertype n'est pas 5 (User), l'utilisateur n'a pas le rôle attendu
-                    throw new ApiError("Unauthorized access", 403);
-                } */
-
-                resolve(user);
-            } catch (err) {
-                reject(err);
-            }
-        });
-        
-        // Request parameters
-        request.addParameter("email", Types.VarChar, email ? email : "%");
-
-        connection.execSql(request);
-    });
-};
-
-
-// Insert user
-module.exports.insertUser = function (user) {
-    return new Promise((resolve, reject) => {
-      const statement = `
-        DECLARE @return_id INT;
-        EXECUTE @return_id = dbo.createUser
-          @username,
-          @usertype,
-          @email,
-          @password,
-          @firstname,
-          @lastname,
-          @country,
-          @zipcode,
-          @city,
-          @address,
-          @number,
-          @crypto,
-          @owner,
-          @restaurantId OUTPUT;
-        SELECT @return_id AS userId, @restaurantId AS restaurantId;
-      `;
-  
-      const request = new Request(statement, function (err, rowCount, rows) {
-        try {
-          if (err) throw err;
-  
-          if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
-  
-          console.log("Request finished");
-  
-          const userId = rows[0].userId;
-          const restaurantId = rows[0].restaurantId;
-          console.log(restaurantId, 'checkme here');
-          resolve({ userId, restaurantId });
-        } catch (err) {
-          reject(err);
-        }
+              resolve(user);
+          } catch (err) {
+              reject(err);
+          }
       });
-  
+      
       // Request parameters
-      request.addParameter("username", Types.VarChar, user.username);
-      request.addParameter("usertype", Types.TinyInt, user.usertype);
-      request.addParameter("email", Types.VarChar, user.email);
-      request.addParameter("password", Types.VarChar, user.password);
-      request.addParameter("firstname", Types.VarChar, user.firstname);
-      request.addParameter("lastname", Types.VarChar, user.lastname);
-      request.addParameter("country", Types.VarChar, user.address.country);
-      request.addParameter("zipcode", Types.VarChar, user.address.zipcode);
-      request.addParameter("city", Types.VarChar, user.address.city);
-      request.addParameter("address", Types.VarChar, user.address.address);
-      request.addParameter("number", Types.Char, user.billing.number);
-      request.addParameter("crypto", Types.Char, user.billing.crypto);
-      request.addParameter("owner", Types.VarChar, user.billing.owner);
-  
-      // Ajout du paramètre restaurantId
-      if (user.usertype === 3) {
-        // Ici, vous devez obtenir l'ID du restaurant correspondant en fonction des informations de l'utilisateur
-        const restaurantId = getRestaurantId(user);
-        console.log(restaurantId, 'HERE RESTAU ID HERHEHREH');
-        request.addOutputParameter("restaurantId", Types.Int, restaurantId); // Ajout du paramètre de sortie pour restaurantId
-      } else {
-        request.addParameter("restaurantId", Types.Int, null); // Utilisation du paramètre restaurantId comme paramètre d'entrée
-      }
-  
-      // Exécution de la requête SQL
+      request.addParameter("id", Types.Int, id);
+
       connection.execSql(request);
+  });
+};
+
+
+// Select user by email// Select user by email
+module.exports.selectOneUser = function(email) {
+  return new Promise((resolve, reject) => {
+      const query = 'SELECT user_ID AS "id", name, lastname, mail, password, phone, referer, nb_referer, role, rating, address, crea_date FROM users WHERE mail LIKE @email';
+
+      const request = new Request(query, function(err, rowCount, rows) {
+          try {
+              if (err)
+                  throw err;
+              
+              if (rowCount <= 0)
+                  throw new ApiError("Query returned no rows", 400);
+
+              const user = deserializeUser(rows);
+
+              console.log(rowCount + " rows returned");
+
+              // Vérification du rôle de l'utilisateur
+              /* if (user.role !== "5") {
+                  // Si le rôle n'est pas "5" (User), l'utilisateur n'a pas le rôle attendu
+                  throw new ApiError("Unauthorized access", 403);
+              } */
+
+              resolve(user);
+          } catch (err) {
+              reject(err);
+          }
+      });
+      
+      // Request parameters
+      request.addParameter("email", Types.VarChar, email ? email : "%");
+
+      connection.execSql(request);
+  });
+};
+
+
+module.exports.insertUser = function(user) {
+  return new Promise((resolve, reject) => {
+    const query = `
+    INSERT INTO dbo.users ("name", "lastname", "mail", "password", "phone", "referer", "nb_referer", "role", "rating", "address", "crea_date")
+    VALUES (@name, @lastname, @mail, @password, @phone, @referer, @nb_referer, @role, @rating, @address, @crea_date);
+    SELECT SCOPE_IDENTITY() AS "userId";
+    `;
+
+    const request = new Request(query, function (err, rowCount, rows) {
+      try {
+        if (err) throw err;
+
+        if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
+
+        console.log("Request finished");
+
+        const userId = rows[0].userId; // Accès direct à la valeur de la colonne sans utiliser .value
+        resolve(userId);
+      } catch (err) {
+        reject(err);
+      }
     });
-  };
+
+    // Request parameters
+    request.addParameter("name", Types.VarChar, user.name);
+    request.addParameter("lastname", Types.VarChar, user.lastname);
+    request.addParameter("mail", Types.VarChar, user.mail);
+    request.addParameter("password", Types.VarChar, user.password);
+    request.addParameter("phone", Types.Int, user.phone);
+    request.addParameter("referer", Types.Int, user.referer);
+    request.addParameter("nb_referer", Types.Int, user.nb_referer);
+    request.addParameter("role", Types.VarChar, user.role);
+    request.addParameter("rating", Types.Float, user.rating);
+    request.addParameter("address", Types.Text, user.address);
+    request.addParameter("crea_date", Types.DateTime, user.crea_date);
+
+    connection.execSql(request);
+  });
+};
+
   
 
-    function getRestaurantId(user) {
-        // Vérifier si l'utilisateur est un restaurateur
-        if (user.usertype === 3) {
-            // Récupérer l'ID du restaurant en fonction des informations de l'utilisateur
-            // Par exemple, si l'utilisateur a un champ "restaurantId" dans son objet user, vous pouvez simplement le renvoyer
-            return user.restaurantId;
-        } else {
-            // Si l'utilisateur n'est pas un restaurateur, renvoyer null ou une valeur par défaut appropriée
-            return null;
-        }
-    }
 // Update user
 module.exports.updateUser = function(user) {
     return new Promise((resolve, reject) => {
@@ -320,38 +281,7 @@ deserializeUser = function(rows) {
     user.firstname = firstRow[5].value ? firstRow[5].value : null;
     user.lastname = firstRow[6].value ? firstRow[6].value : null;
 
-    // Multiple attributes
-    rows.forEach((row) => {
-        // Check the user ID
-        if (row[0].value !== user.id)
-            return;
-        
-        const address = new Address;
-        const billing = new Billing;
-
-        // Check if the address has already been added
-        if (!userAddresses.includes(row[7].value)) {
-            userAddresses.push(row[7].value);
-
-            address.country = row[8].value;
-            address.zipcode = row[9].value;
-            address.city = row[10].value ? row[10].value : null;
-            address.address = row[11].value ? row[11].value : null;
-
-            user.address.push(address);
-        }
-
-        // Check if the billing has already been added
-        if (!userBillings.includes(row[12].value)) {
-            userBillings.push(row[12].value);
-
-            billing.number = row[13].value ? row[13].value : null;
-            billing.crypto = row[14].value ? row[14].value : null;
-            billing.owner = row[15].value ? row[15].value : null;
-
-            user.billing.push(billing);
-        }
-    });
+  
     
     return user;
 };

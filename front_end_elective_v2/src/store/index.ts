@@ -20,8 +20,15 @@ export default new Vuex.Store({
     setRestaurantId(state, restaurantId) {
       state.user.restaurantId = restaurantId;
     },
-    SET_AUTH_USER(state, status) {
-      state.user = status;
+    SET_AUTH_USER(state, user) {
+      state.user = {
+        loginStatus: true,
+        userId: user.userId,
+        token: user.token,
+        refresh: user.refresh,
+        role: user.role,
+        restaurantId: null,
+      };
     },
     SET_BASKET(state, itemId) {
       state.basket = itemId;

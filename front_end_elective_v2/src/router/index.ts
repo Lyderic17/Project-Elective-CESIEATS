@@ -10,6 +10,7 @@ import ClientDashboard from '../views/ClientDashboard.vue';
 import RestaurantDashboard from '../views/RestaurantDashboard.vue';
 import DeliveryDashboard from '../views/DeliveryDashboard.vue';
 import DeliveryMan from '../views/DeliveryMan.vue';
+import CreateRestaurant from '../views/CreateRestaurant.vue';
 
 Vue.use(VueRouter);
 
@@ -140,6 +141,14 @@ const routes: Array<RouteConfig> = [
     meta: {
       requiresAuth: true,
       role: 3,
+    },
+  },
+  {
+    path: '/restaurants/create',
+    name: 'CreateRestaurant',
+    component: CreateRestaurant,
+    meta: {
+      requiresAuth: true,
     },
   },
   {

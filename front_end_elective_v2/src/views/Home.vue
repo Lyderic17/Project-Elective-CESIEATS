@@ -28,7 +28,7 @@
 
     <div v-if="getUserRole === 3">
     <!-- Autres éléments de la page Home -->
-
+    <router-link to="/restaurants/create">Create Restaurant</router-link>
     <!-- Bouton Dashboard Restaurant -->
     <router-link to="/restaurateur">
       <button>Dashboard Restaurant</button>
@@ -76,8 +76,9 @@ export default Vue.extend({
           this.$router.push('/login').catch();
         }
       }
-      return this.$store.getters.getUser;
+      return this.$store.getters.getUser.userId; // Utilisez "userId" au lieu de "user_ID"
     },
+
     async queryResto() {
       try {
         const { token } = this.$store.getters.getUser;
@@ -88,7 +89,7 @@ export default Vue.extend({
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        console.log(this.$store.getters.getUserRole, 'rôle');
+        console.log(this.$store.getters.getUser.role, 'rôle');
         console.log(response.data, 'responsedata');
         this.restaurants = response.data;
       } catch (error) {

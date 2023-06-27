@@ -1,7 +1,3 @@
-/* 
- * The object representing an User.
- * Author	: Rubisetcie
- */
 
 class User {
     id;
@@ -24,7 +20,7 @@ class User {
         json["password"] = this.password;
         json["firstname"] = this.firstname;
         json["lastname"] = this.lastname;
-        
+
         if (this.usertype === 3) {
             json["restaurantId"] = this.restaurantId;
           }

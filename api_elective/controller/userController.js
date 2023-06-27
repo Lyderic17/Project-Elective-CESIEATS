@@ -1,14 +1,8 @@
-/* 
- * The code containing functions associated with the User's requests.
- * Author	: Rubisetcie
- */
-
 // Importing the associated service
 const service = require("../service/userService");
-const Restaurant = require('../model/restaurant')
 // Importing the utils functions
 const handleError = require("../utils/apiUtils").handleError;
-
+const connector = require('../connector/sqlConnector')
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
@@ -22,12 +16,12 @@ module.exports.getById = function(req, res) {
     try {
         const id = parseInt(req.params.id, 10);
 
-        // Paramters verification
+        // Parameters verification
         if (isNaN(id))
             throw new ApiError("Parameter type not recognized: id", 400);
 
         service.getById(id).then((result) => {
-            res.json(result.toJson());
+            res.json(result);
         }).catch((error) => {
             handleError(error, res, "retrieving user");
         });
@@ -43,7 +37,7 @@ module.exports.getOne = function(req, res) {
         const email = req.query["email"];
     
         service.getOne(email).then((result) => {
-            res.json(result.toJson());
+            res.json(result);
         }).catch((error) => {
             handleError(error, res, "retrieving user");
         });
@@ -55,9 +49,9 @@ module.exports.getOne = function(req, res) {
 // Create a new user
 module.exports.post = function(req, res) {
     try {
-        const user = new User;
-        const address = new Address;
-        const billing = new Billing;
+        const user = new User();
+        const address = new Address();
+        const billing = new Billing();
         
         // Parameters reading
         if (!req.body)
@@ -78,52 +72,43 @@ module.exports.post = function(req, res) {
             billing.owner = userBilling["owner"] ? userBilling["owner"] : null;
         }
         
-        user.username = req.body["username"] ? req.body["username"] : null;
-        user.usertype = (req.body["usertype"] || req.body["usertype"] === 0) ? parseInt(req.body["usertype"]) : null;
-        user.email = req.body["email"] ? req.body["email"] : null;
-        user.password = req.body["password"] ? req.body["password"] : null;
-        user.firstname = req.body["firstname"] ? req.body["firstname"] : null;
+        user.name = req.body["name"] ? req.body["name"] : null;
         user.lastname = req.body["lastname"] ? req.body["lastname"] : null;
+        user.mail = req.body["mail"] ? req.body["mail"] : null;
+        user.password = req.body["password"] ? req.body["password"] : null;
+        user.phone = req.body["phone"] ? req.body["phone"] : null;
+        user.referer = req.body["referer"] ? req.body["referer"] : null;
+        user.nb_referer = req.body["nb_referer"] ? req.body["nb_referer"] : null;
+        user.role = req.body["role"] ? req.body["role"] : null;
+        user.rating = req.body["rating"] ? req.body["rating"] : null;
         user.address = address;
-        user.billing = billing;
+        user.crea_date = req.body["crea_date"] ? req.body["crea_date"] : null;
 
-        // Paramters verification
-        if (!user.username)         throw new ApiError("Missing mandatory parameter: username", 400);
-        if (!user.usertype)         throw new ApiError("Missing mandatory parameter: usertype", 400);
-        if (isNaN(user.usertype))   throw new ApiError("Parameter type not recognized: usertype", 400);
-        if (!user.email)            throw new ApiError("Missing mandatory parameter: email", 400);
+        // Parameters verification
+        if (!user.name)             throw new ApiError("Missing mandatory parameter: name", 400);
+        if (!user.lastname)         throw new ApiError("Missing mandatory parameter: lastname", 400);
+        if (!user.mail)             throw new ApiError("Missing mandatory parameter: mail", 400);
         if (!user.password)         throw new ApiError("Missing mandatory parameter: password", 400);
-        
-        if (!address.country)       throw new ApiError("Missing mandatory parameter: country", 400);
-        if (!address.zipcode)       throw new ApiError("Missing mandatory parameter: zipcode", 400);
+        if (!user.phone)            throw new ApiError("Missing mandatory parameter: phone", 400);
+        if (!user.referer)          throw new ApiError("Missing mandatory parameter: referer", 400);
+        if (!user.nb_referer)       throw new ApiError("Missing mandatory parameter: nb_referer", 400);
+        if (!user.role)             throw new ApiError("Missing mandatory parameter: role", 400);
+        if (!user.address)          throw new ApiError("Missing mandatory parameter: zipcode", 400);
 
-        service.post(user).then((userId) => {
-/*             if (user.usertype === 3) {
-              const restaurant = new Restaurant({
-                name: req.body["restaurantName"], // Récupérez le nom du restaurant depuis la requête
-                createdBy: userId
-              });
-      
-              // Enregistrement du restaurant dans la base de données
-              // Implémentez ici la logique pour enregistrer le restaurant dans votre base de données MSSQL
-              // Assurez-vous de lier l'utilisateur et le restaurant en utilisant l'ID de l'utilisateur
-      
-              res.json({ "id": userId });
-            } else {
-              res.json({ "id": userId });
-            } */
-          }).catch((error) => {
+        service.post(user).then((id) => {
+            res.json({ "id": id });
+        }).catch((error) => {
             handleError(error, res, "creating user");
-          });
-        } catch (err) {
-          handleError(err, res, "creating user");
-        }
-      };
+        });
+    } catch (err) {
+        handleError(err, res, "creating user");
+    }
+};
 
 // Updates an existing user
 module.exports.put = function(req, res) {
     try {
-        const user = new User;
+        const user = new User();
         
         // Parameters reading
         if (!req.body)
@@ -137,7 +122,7 @@ module.exports.put = function(req, res) {
         user.firstname = req.body["firstname"] ? req.body["firstname"] : null;
         user.lastname = req.body["lastname"] ? req.body["lastname"] : null;
 
-        // Paramters verification
+        // Parameters verification
         if (!user.id)
             throw new ApiError("Missing mandatory parameter: id", 400);
 

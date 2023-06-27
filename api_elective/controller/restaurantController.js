@@ -8,6 +8,31 @@ const handleError = require("../utils/apiUtils").handleError;
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
+// Create a new restaurant
+module.exports.createRestaurant = function(req, res) {
+    try {
+      const userId = req.user.id; // Obtenez l'ID de l'utilisateur connecté à partir de la requête
+  
+      // Parameters reading
+      const restaurantData = {
+        ownerId: userId,
+        restName: req.body.name,
+        address: req.body.address,
+        phone: req.body.phone,
+        creaDate: new Date(),
+        rating: null,
+        status: 1
+      };
+  
+      service.createRestaurant(restaurantData).then((result) => {
+        res.json({ "id": result.restaurantId });
+      }).catch((error) => {
+        handleError(error, res, "creating restaurant");
+      });
+    } catch (err) {
+      handleError(err, res, "creating restaurant");
+    }
+  };
 // Retrieving restaurant data by ID
 module.exports.getById = function(req, res) {
     try {

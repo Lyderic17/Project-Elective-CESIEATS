@@ -18,60 +18,62 @@
 
     var refreshTokens = [];
 
-    // Trigger user login
-    module.exports.login = function(req, res) {
-        try {
-            // Parameters reading
-            if (!req.body)
-                throw new ApiError("Request body is undefined", 400);
-            
-            const email = req.body["email"];
-            const password = req.body["password"];
+    // Trigger user login// Trigger user login
+module.exports.login = async function(req, res) {
+    try {
+        // Parameters reading
+        if (!req.body)
+            throw new ApiError("Request body is undefined", 400);
+        
+        const email = req.body["email"];
+        const password = req.body["password"];
 
-            // Paramters verification
-            if (!email)     throw new ApiError("Missing mandatory parameter: email", 400);
-            if (!password)  throw new ApiError("Missing mandatory parameter: password", 400);
+        // Paramters verification
+        if (!email)     throw new ApiError("Missing mandatory parameter: email", 400);
+        if (!password)  throw new ApiError("Missing mandatory parameter: password", 400);
+        
+        try {
+            const user = await service.getUserByEmail(email);
+    
+            if (!user) {
+                return res.status(404).send("User not found");
+            }
+        
+            const validPassword = await bcrypt.compare(password, user.password);
+        
+            if (!validPassword) {
+                return res.status(400).send("Password mismatch");
+            }
+        
+            // Access token generation
+            const accessToken = jwt.sign({
+                id: user.id,
+                username: user.username,
+                role: user.usertype
+            }, process.env.AUTH_ACCESSTOKENSECRET || "secret", { expiresIn: process.env.AUTH_TOKENEXPIRATION || "20m" });
             
-            service.getUserByEmail(email).then(async function(user) {
-                if(!user){
-                    return res.status(404).send("User not found");
-                }
+            // Refresh token generation
+            const refreshToken = jwt.sign(
+                {
+                  id: user.id,
+                  username: user.username,
+                  role: user.usertype,
+                },
+                REFRESHTOKENSECRET,
+                { expiresIn: '7d' }
+            );
             
-                const validPassword = await bcrypt.compare(password, user.password);
+            refreshTokens.push(refreshToken);
             
-                if (!validPassword) {
-                    return res.status(400).send("Password mismatch");
-                }
-            
-                // Access token generation
-                const accessToken = jwt.sign({
-                    id: user.id,
-                    username: user.username,
-                    role: user.usertype
-                }, process.env.AUTH_ACCESSTOKENSECRET || "secret", { expiresIn: process.env.AUTH_TOKENEXPIRATION || "20m" });
-                
-                // Refresh token generation
-                const refreshToken = jwt.sign(
-                    {
-                      id: user.id,
-                      username: user.username,
-                      role: user.usertype,
-                    },
-                    REFRESHTOKENSECRET,
-                    { expiresIn: '7d' }
-                  );
-                
-                refreshTokens.push(refreshToken);
-                
-                return res.json({ accessToken, refreshToken, user });
-            
-            }).catch((error) => {
-                return handleError(error, res, "logging in");
-            });
-        } catch (err) {
-            handleError(err, res, "logging in");
+            return res.json({ accessToken, refreshToken, user });
+        } catch (error) {
+            return handleError(error, res, "logging in");
         }
-    };
+    } catch (err) {
+        handleError(err, res, "logging in");
+    }
+};
+
 
     // Trigger user logout
     module.exports.logout = function(req, res) {

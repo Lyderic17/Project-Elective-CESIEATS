@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 3000;
     const userController = require("./controller/userController");
     const authenticationController = require("./controller/authenticationController");
     const clientRoute = require("./route/ClientRoute");
+    const restaurantController = require('./controller/restaurantController')
 
     // Options for the documentation
     const swaggerOptions = {
@@ -44,6 +45,7 @@ const PORT = process.env.PORT || 3000;
     // Logging middleware
     app.use(morgan("common", {stream: fs.createWriteStream(__dirname + "/access.log", { flags: "a" })}));
 
+app.post("/restaurants/create", restaurantController.createRestaurant);
     // Login URL
     app.post("/login", authenticationController.login);
     app.post("/logout", authenticationController.logout);
