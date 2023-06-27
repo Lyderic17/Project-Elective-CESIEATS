@@ -1,7 +1,7 @@
 <template>
   <div class='HomeBar'>
     <v-card class='mx-auto overflow-hidden'>
-      <v-app-bar color='deep-purple' dark>
+      <v-app-bar color='white' >
         <v-app-bar-nav-icon @click='drawer = true'></v-app-bar-nav-icon>
 
         <v-toolbar-title>{{ $route.name }}</v-toolbar-title>
@@ -10,7 +10,7 @@
         <v-menu offset-y>
           <template v-slot:activator='{ on, attrs }'>
             <v-btn icon v-bind='attrs' v-on='on'>
-              <v-badge color='green' content='3'>
+              <v-badge color='red' content='3'>
                 <v-icon>mdi-bell</v-icon>
               </v-badge>
             </v-btn>
