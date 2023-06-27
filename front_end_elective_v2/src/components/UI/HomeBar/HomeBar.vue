@@ -96,9 +96,9 @@
             </v-list-item>
             <v-list-item
               @click='redirect("/dashboard")'
-              v-if='this.getUserId.usertype === 0
-              || this.getUserId.usertype === 1
-              || this.getUserId.usertype === 2'
+              v-if='this.getUserId.role === 0
+              || this.getUserId.role === 1
+              || this.getUserId.role === 2'
               >
               <v-list-item-title>Tableau de bord</v-list-item-title>
             </v-list-item>
@@ -141,9 +141,9 @@
             </v-list-item>
 
             <v-list-item
-            v-if='this.getUserId.usertype === 4
-            || this.getUserId.usertype === 0
-            || this.getUserId.usertype === 6'
+            v-if='this.getUserId.role === 4
+            || this.getUserId.role === 0
+            || this.getUserId.role === 6'
             @click='redirect("/deliveryman")'>
               <v-list-item-icon>
                 <v-icon>mdi-bike-fast</v-icon>
@@ -152,9 +152,9 @@
             </v-list-item>
 
             <v-list-item
-            v-if='this.getUserId.usertype === 3
-            || this.getUserId.usertype === 0
-            || this.getUserId.usertype === 6'
+            v-if='this.getUserId.role === 3
+            || this.getUserId.role === 0
+            || this.getUserId.role === 6'
             @click='redirect("/createmenu")'>
               <v-list-item-icon>
                 <v-icon>mdi-hamburger</v-icon>
@@ -163,9 +163,9 @@
             </v-list-item>
 
             <v-list-item
-            v-if='this.getUserId.usertype === 3
-            || this.getUserId.usertype === 0
-            || this.getUserId.usertype === 6'
+            v-if='this.getUserId.role === 3
+            || this.getUserId.role === 0
+            || this.getUserId.role === 6'
             @click='redirect("/createmenu")'>
               <v-list-item-icon>
                 <v-icon>mdi-hamburger</v-icon>

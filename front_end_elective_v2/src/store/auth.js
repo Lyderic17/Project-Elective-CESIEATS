@@ -8,14 +8,7 @@ export default {
   },
   mutations: {
     SET_AUTH_USER(state, user) {
-      state.user = {
-        loginStatus: true,
-        userId: user.userId,
-        token: user.token,
-        refresh: user.refresh,
-        role: user.role,
-        restaurantId: null,
-      };
+      state.user = user;
     },
   },
   actions: {
@@ -23,13 +16,18 @@ export default {
       try {
         const response = await axios.post('/login', credentials);
         const { accessToken, refreshToken, user } = response.data;
-        console.log(user, 'USERE RHERERERE');
+
         // Stockez le jeton d'accès et le jeton de rafraîchissement dans le stockage local
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-        // Appeler l'action fetchProfil pour mettre à jour le state de l'utilisateur
-        dispatch('fetchProfil', user);
+
+        // Ajoutez les tokens et le rôle à l'objet user
+        user.token = accessToken;
+        user.refresh = refreshToken;
+
+        // Utilisez la mutation SET_AUTH_USER pour mettre à jour le state de l'utilisateur
+        commit('SET_AUTH_USER', user);
       } catch (error) {
         // Gérez les erreurs de connexion
         console.error(error);
@@ -46,6 +44,9 @@ export default {
   getters: {
     getUserRole(state) {
       return state.user ? state.user.role : null;
+    },
+    getUserId(state) {
+      return state.user ? state.user.user_ID : null;
     },
     hasPermission: (state) => (permission) => {
       // Vérifier si l'utilisateur a la permission spécifiée

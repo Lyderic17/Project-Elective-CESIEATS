@@ -1,25 +1,22 @@
 /* 
  * The code containing the Restaurant related queries to the database.
  */
-
+const { Restaurant } = require("../model/restaurant");
 // Importing the associated connector
-const connector = require("../connector/mongoConnector");
+const connector = require("../connector/sqlConnector");
 
 
 
-
+// Service.js
+module.exports.getAll = function(offset, limit) {
+        return connector.selectAllRestaurants(offset, limit);
+};
 // Retrieving restaurant data by ID
 module.exports.getById = function(id) {
-    return Restaurant.findById(id);
+    return connector.selectRestaurantById(id);
 };
 
-// Retrieving multiple restaurant data by filter
-module.exports.getAll = function(limit, offset, status) {
-    let query = {};
-
-    if (status) {
-        query.status = { $in: status };
-    }
-
-    return Restaurant.find(query).limit(limit).skip(offset);
+// Creating a new restaurant
+module.exports.post = function(restaurant) {
+    return connector.createRestaurant(restaurant);
 };

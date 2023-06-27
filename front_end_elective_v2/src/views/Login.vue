@@ -48,32 +48,41 @@ axios.defaults.baseURL = 'http://localhost:3000';
       }
     },
     async validate() {
-      const d = await axios.post('/login', {
-        email: this.new_email,
-        password: this.new_password,
-      });
-      console.log(d);
-      if (d.status === 200) {
-        this.dataToken = d.data.accessToken;
-        localStorage.setItem('accessToken', d.data.accessToken);
-        axios.defaults.headers.common.Authorization = `Bearer ${d.data.accessToken}`;
-        const response = await axios.get(`/user/one/?email=${this.new_email}`);
-        if (response.data.password) {
-          const pswv = await bcrypt.compare(this.new_password, response.data.password);
-          if (pswv) {
-            this.$store.dispatch('fetchProfil', {
-              loginStatus: true,
-              userId: response.data.id,
-              usertype: response.data.usertype,
-              token: d.data.accessToken,
-              refresh: d.data.refreshToken,
-            });
-            console.log(this.$store, 'store');
-            this.$router.push('/');
+      try {
+        const d = await axios.post('/login', {
+          email: this.new_email,
+          password: this.new_password,
+        });
+        console.log(d, 'DATAAAA');
+        if (d.status === 200) {
+          const { accessToken } = d.data;
+          localStorage.setItem('accessToken', accessToken);
+          axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+          /* const userId = d.data.user.user_ID; */
+          const response = await axios.get(`/user/one/?email=${this.new_email}`);
+          // eslint-disable-next-line
+          const { user_ID, role } = response.data;
+          if (response.data.password) {
+            const pswv = await bcrypt.compare(this.new_password, response.data.password);
+            if (pswv) {
+              this.$store.dispatch('fetchProfil', {
+                loginStatus: true,
+                user_ID,
+                token: accessToken,
+                refresh: d.data.refreshToken,
+                role,
+              });
+              this.$router.push('/');
+            }
           }
         }
+      } catch (error) {
+        console.error(error);
+        this.$store.commit('SET_AUTH_USER', null);
       }
     },
+
     changePassword() {
       this.know = true;
     },

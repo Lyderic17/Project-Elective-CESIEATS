@@ -8,31 +8,35 @@ const handleError = require("../utils/apiUtils").handleError;
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
-// Create a new restaurant
-module.exports.createRestaurant = function(req, res) {
+module.exports.getOne = function(req, res) {
     try {
-      const userId = req.user.id; // Obtenez l'ID de l'utilisateur connecté à partir de la requête
-  
-      // Parameters reading
-      const restaurantData = {
-        ownerId: userId,
-        restName: req.body.name,
-        address: req.body.address,
-        phone: req.body.phone,
-        creaDate: new Date(),
-        rating: null,
-        status: 1
-      };
-  
-      service.createRestaurant(restaurantData).then((result) => {
-        res.json({ "id": result.restaurantId });
-      }).catch((error) => {
-        handleError(error, res, "creating restaurant");
-      });
+        // Reading parameters
+        const id = req.query["id"];
+    
+        service.getById(id).then((result) => {
+            res.json(result);
+        }).catch((error) => {
+            handleError(error, res, "retrieving restaurant");
+        });
     } catch (err) {
-      handleError(err, res, "creating restaurant");
+        handleError(err, res, "retrieving restaurant");
     }
-  };
+};
+
+module.exports.post = function(req, res) {
+    try {
+        const restaurantData = req.body;
+        
+        service.post(restaurantData).then((result) => {
+            res.json(result);
+        }).catch((error) => {
+            handleError(error, res, "creating restaurant");
+        });
+    } catch (err) {
+        handleError(err, res, "creating restaurant");
+    }
+};
+
 // Retrieving restaurant data by ID
 module.exports.getById = function(req, res) {
     try {
@@ -52,15 +56,11 @@ module.exports.getById = function(req, res) {
     }
 };
 
-// Retrieving multiple restaurant data by filter
 module.exports.getAll = function(req, res) {
     try {
-        // Parameters reading
         const limit = (req.query["limit"] || req.query["limit"] === 0) ? parseInt(req.query["limit"]) : null;
         const offset = (req.query["offset"] || req.query["offset"] === 0) ? parseInt(req.query["offset"]) : null;
-        const status = req.query["status"] ? req.query["status"].split(';') : null;
         
-        // Paramters verification
         if (limit) {
             if (isNaN(limit))   throw new ApiError("Parameter type not recognized: limit", 400);
             if (limit < 1)      throw new ApiError("Parameter below accepted value: limit below 1", 400);
@@ -71,15 +71,8 @@ module.exports.getAll = function(req, res) {
             if (offset < 1)     throw new ApiError("Parameter below accepted value: offset below 1", 400);
         }
         
-        let query = {};
-
-        if (status) {
-            query.status = { $in: status };
-        }
-        
-        Restaurant.find(query).limit(limit).skip(offset).then((result) => {
-            const json = result.map((r) => r.toJson());
-            res.json(json);
+        service.getAll(offset, limit).then((result) => {
+            res.json(result);
         }).catch((error) => {
             handleError(error, res, "retrieving restaurant");
         });

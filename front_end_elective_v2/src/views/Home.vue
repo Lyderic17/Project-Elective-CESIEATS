@@ -2,7 +2,7 @@
     <div>
       <router-link to='/delivery'>Delivery</router-link>
       <!-- Affichage spécifique pour le client -->
-      <div v-if="getUserRole === 5">
+      <div v-if="userRole === '5'">
       <!-- Composants et fonctionnalités spécifiques pour le client -->
       <div class='d-flex align-content-start flex-wrap justify-space-around'>
       <div v-for='resto in restaurants' :key='resto.name'>
@@ -17,7 +17,7 @@
     </div>
 
         <!-- Affichage spécifique pour le livreur -->
-        <div v-if="getUserRole === 4">
+        <div v-if="userRole === '4'">
       <!-- Composants et fonctionnalités spécifiques pour le livreur -->
       <p>Interface du Livreur</p>
       <router-link to="/deliveries">Liste des livraisons</router-link>
@@ -26,7 +26,7 @@
       <router-view></router-view>
     </div>
 
-    <div v-if="getUserRole === 3">
+    <div v-if="userRole === '3'">
     <!-- Autres éléments de la page Home -->
     <router-link to="/restaurants/create">Create Restaurant</router-link>
     <!-- Bouton Dashboard Restaurant -->
@@ -67,19 +67,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['getUserRole']),
+    ...mapGetters(['userRole']),
   },
   methods: {
-    async getUserId() {
-      if (this.$store.getters.getUser.loginStatus === false) {
-        if (this.$route.path !== '/login' && this.$route.path !== '/register') {
-          this.$router.push('/login').catch();
-        }
-      }
-      return this.$store.getters.getUser.userId; // Utilisez "userId" au lieu de "user_ID"
-    },
-
     async queryResto() {
+      console.log(this.userRole, 'userRole');
       try {
         const { token } = this.$store.getters.getUser;
         const accessToken = localStorage.getItem('accessToken');
@@ -89,7 +81,7 @@ export default Vue.extend({
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        console.log(this.$store.getters.getUser.role, 'rôle');
+        console.log(this.$store.getters.getUserRole, 'rôle');
         console.log(response.data, 'responsedata');
         this.restaurants = response.data;
       } catch (error) {
@@ -106,7 +98,6 @@ export default Vue.extend({
     if (!accessToken) {
       this.$router.push('/login');
     } else {
-      await this.getUserId(); // Attendre la résolution de la méthode getUserId()
       this.queryResto();
     }
   },

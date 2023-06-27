@@ -289,10 +289,10 @@ const gradients = [
     },
   },
   beforeMount() {
-    if (this.getUserId.usertype !== 0
-    && this.getUserId.usertype !== 1
-    && this.getUserId.usertype !== 2
-    && this.getUserId.usertype !== 6) {
+    if (this.getUserId.role !== 0
+    && this.getUserId.role !== 1
+    && this.getUserId.role !== 2
+    && this.getUserId.role !== 6) {
       this.$router.push('/');
     }
   },

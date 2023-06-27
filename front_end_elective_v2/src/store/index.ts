@@ -8,26 +8,21 @@ export default new Vuex.Store({
   state: {
     user: {
       loginStatus: false,
-      userId: '',
+      user_ID: '',
       token: '',
       refresh: '',
       role: '',
-      restaurantId: null,
     },
     basket: [],
   },
   mutations: {
-    setRestaurantId(state, restaurantId) {
-      state.user.restaurantId = restaurantId;
-    },
     SET_AUTH_USER(state, user) {
       state.user = {
         loginStatus: true,
-        userId: user.userId,
+        user_ID: user.user_ID,
         token: user.token,
         refresh: user.refresh,
         role: user.role,
-        restaurantId: null,
       };
     },
     SET_BASKET(state, itemId) {
@@ -36,11 +31,10 @@ export default new Vuex.Store({
     RESET_USER(state) {
       state.user = {
         loginStatus: false,
-        userId: '',
+        user_ID: '',
         token: '',
         refresh: '',
         role: '',
-        restaurantId: null,
       };
     },
     RESET_BASKET(state) {
@@ -71,6 +65,7 @@ export default new Vuex.Store({
     getUser: (state) => state.user,
     getBasket: (state) => state.basket,
     isAuthenticated: (state) => state.user.loginStatus,
-    restaurantId: (state) => state.user.restaurantId,
+    userId: (state) => state.user.user_ID,
+    userRole: (state) => state.user.role,
   },
 });

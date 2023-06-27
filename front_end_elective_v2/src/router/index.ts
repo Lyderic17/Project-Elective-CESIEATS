@@ -174,10 +174,10 @@ const router = new VueRouter({
   routes,
   mode: 'history',
 });
-router.beforeEach((to, from, next) => {
+/* router.beforeEach((to, from, next) => {
   const requiresAuth = to.meta?.requiresAuth;
   const role = to.meta?.role;
-
+  console.log(role, 'roooole');
   if (requiresAuth) {
     const userRole = store.getters.getUserRole; // get role from store
 
@@ -190,6 +190,6 @@ router.beforeEach((to, from, next) => {
   } else {
     next(); // La route ne nécessite pas d'authentification, continuez vers la vue demandée
   }
-});
+}); */
 
 export default router;

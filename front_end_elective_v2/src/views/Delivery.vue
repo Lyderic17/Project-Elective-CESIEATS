@@ -17,7 +17,7 @@ import Map from '../components/UI/Map/Map.vue';
     Map,
   },
   beforeMount() {
-    if (this.getUserId.loginStatus === false || this.usertype === 4) {
+    if (this.getUserId.loginStatus === false || this.role === 4) {
       this.$router.push('/');
     }
   },

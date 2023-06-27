@@ -116,7 +116,7 @@ module.exports.put = function(req, res) {
         
         user.id = (req.body["id"] || req.body["id"] === 0) ? req.body["id"] : null;
         user.username = req.body["username"] ? req.body["username"] : null;
-        user.usertype = (req.body["usertype"] || req.body["usertype"] === 0) ? parseInt(req.body["usertype"]) : null;
+        user.role = (req.body["role"] || req.body["role"] === 0) ? parseInt(req.body["role"]) : null;
         user.email = req.body["email"] ? req.body["email"] : null;
         user.password = req.body["password"] ? req.body["password"] : null;
         user.firstname = req.body["firstname"] ? req.body["firstname"] : null;

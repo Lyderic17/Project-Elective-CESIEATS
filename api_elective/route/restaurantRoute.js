@@ -14,4 +14,8 @@ router.get("/", controller.getAll);
 // Retrieving restaurant data by ID
 router.get("/:id", controller.getById);
 
+// Creating a new restaurant
+router.post("/create", controller.post);
+
+
 module.exports = router;

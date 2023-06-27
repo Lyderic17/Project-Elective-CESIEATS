@@ -1,40 +1,27 @@
-const mongoose = require('mongoose');
-const Menu = require('./menu');
+class Restaurant {
+  restaurant_ID; // ID du restaurant
+  owner_ID; // ID du propriétaire du restaurant
+  rest_name; // Nom du restaurant
+  address; // Adresse du restaurant
+  phone; // Téléphone du restaurant
+  crea_date; // Date de création du restaurant
+  rating; // Note du restaurant
+  status; // Statut du restaurant
 
-const restaurantSchema = new mongoose.Schema({
-  name: String,
-  address: {
-    country: String,
-    zipcode: String,
-    city: String,
-    address: String
-  },
-  status: String,
-  image: {
-    url: String,
-    alt: String
-  },
-  openings: [{ open: String, close: String }],
-  tags: [String],
-  description: String,
-  menus: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // Added createdBy field to associate the restaurant with the user
-}, { collection: 'restaurants' });
+  toJson = function() {
+    const json = {};
 
-restaurantSchema.methods.toJson = function() {
-  return {
-    id: this._id,
-    name: this.name,
-    address: this.address,
-    status: this.status,
-    image: this.image,
-    openings: this.openings,
-    tags: this.tags,
-    description: this.description,
-    menus: this.menus
-  };
-};
+    json["restaurant_ID"] = this.restaurant_ID;
+    json["owner_ID"] = this.owner_ID;
+    json["rest_name"] = this.rest_name;
+    json["address"] = this.address;
+    json["phone"] = this.phone;
+    json["crea_date"] = this.crea_date;
+    json["rating"] = this.rating;
+    json["status"] = this.status;
 
-const Restaurant = mongoose.model('Restaurant', restaurantSchema);
+    return json;
+  }
+}
 
 module.exports = Restaurant;

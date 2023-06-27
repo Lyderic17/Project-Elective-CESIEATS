@@ -7,7 +7,7 @@ const Types = require("tedious").TYPES;
 const User = require("../model/user");
 const Address = require("../model/address");
 const Billing = require("../model/billing");
-
+const Restaurant = require('../model/restaurant')
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
@@ -45,42 +45,73 @@ connection.on("connect", function(err) {
         console.log("Connected to Microsoft SQL Database");
     }
 });
-// Create restaurant
-module.exports.createRestaurant = function (restaurantData) {
-    return new Promise((resolve, reject) => {
-      const { name, userId, restaurantId } = restaurantData;
-  console.log(restaurantData, 'hihih')
-      // Vérifier que userId et restaurantId sont des nombres entiers valides
-      if (!Number.isInteger(userId) || userId <= 0 || !Number.isInteger(restaurantId) || restaurantId <= 0) {
-        reject(new Error("Invalid userId or restaurantId"));
-        return;
-      }
-  
-      const query = 'INSERT INTO dbo.restaurants ("name", "userId") VALUES (@name, @userId); SELECT SCOPE_IDENTITY() AS "restaurantId";';
-  
-      const request = new Request(query, function (err, rowCount, rows) {
-        try {
-          if (err) throw err;
-  
-          if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
-  
-          console.log("Request finished");
-  
-          const restaurantId = rows[0].restaurantId.value;
-          console.log(restaurantId)
-          resolve(restaurantId);
-        } catch (err) {
-          reject(err);
-        }
+
+// Select restaurant by ID
+module.exports.selectRestaurantById = function(id) {
+  return new Promise((resolve, reject) => {
+      const query = 'SELECT restaurant_ID AS "id", owner_ID, rest_name, address, phone, crea_date, rating, status FROM restaurants WHERE restaurant_ID = @id';
+
+      const request = new Request(query, function(err, rowCount, rows) {
+          try {
+              if (err)
+                  throw err;
+              
+              if (rowCount <= 0)
+                  throw new ApiError("Query returned no rows", 400);
+
+              const restaurant = deserializeRestaurant(rows);
+
+              console.log(rowCount + " rows returned");
+
+              resolve(restaurant);
+          } catch (err) {
+              reject(err);
+          }
       });
-  
-      // Ajouter les paramètres de requête
-      request.addParameter("name", Types.VarChar, name);
-      request.addParameter("userId", Types.Int, userId);
-  
+      
+      // Request parameters
+      request.addParameter("id", Types.Int, id);
+
       connection.execSql(request);
-    });
-  };
+  });
+};
+
+// Create restaurant// Create restaurant
+module.exports.createRestaurant = function(restaurant) {
+  return new Promise((resolve, reject) => {
+      const query = `
+      INSERT INTO dbo.restaurants ("owner_ID", "rest_name", "address", "phone", "crea_date", "rating", "status")
+      VALUES (@owner_ID, @rest_name, @address, @phone, @crea_date, @rating, @status);
+      SELECT SCOPE_IDENTITY() AS "restaurant_ID";
+      `;
+
+      const request = new Request(query, function (err, rowCount, rows) {
+          try {
+              if (err) throw err;
+
+              if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
+
+              console.log("Request finished");
+
+              const restaurantId = rows[0].restaurant_ID.value;
+              resolve(restaurantId);
+          } catch (err) {
+              reject(err);
+          }
+      });
+
+      // Request parameters
+      request.addParameter("owner_ID", Types.Int, restaurant.owner_ID);
+      request.addParameter("rest_name", Types.VarChar, restaurant.rest_name);
+      request.addParameter("address", Types.VarChar, restaurant.address);
+      request.addParameter("phone", Types.VarChar, restaurant.phone);
+      request.addParameter("crea_date", Types.DateTime, restaurant.crea_date);
+      request.addParameter("rating", Types.Float, restaurant.rating);
+      request.addParameter("status", Types.VarChar, restaurant.status);
+
+      connection.execSql(request);
+  });
+};
   
   
 // Select user by ID
@@ -156,7 +187,7 @@ module.exports.insertUser = function(user) {
     const query = `
     INSERT INTO dbo.users ("name", "lastname", "mail", "password", "phone", "referer", "nb_referer", "role", "rating", "address", "crea_date")
     VALUES (@name, @lastname, @mail, @password, @phone, @referer, @nb_referer, @role, @rating, @address, @crea_date);
-    SELECT SCOPE_IDENTITY() AS "userId";
+    SELECT SCOPE_IDENTITY() AS "user_ID";
     `;
 
     const request = new Request(query, function (err, rowCount, rows) {
@@ -167,7 +198,7 @@ module.exports.insertUser = function(user) {
 
         console.log("Request finished");
 
-        const userId = rows[0].userId; // Accès direct à la valeur de la colonne sans utiliser .value
+        const userId = rows[0].user_ID; // Accès direct à la valeur de la colonne sans utiliser .value
         resolve(userId);
       } catch (err) {
         reject(err);
@@ -206,7 +237,7 @@ module.exports.updateUser = function(user) {
             set++;
         }
         
-        if (user.usertype || user.usertype === 0) {
+        if (user.role || user.role === 0) {
             if (set === 0)  statement += ' SET';
             statement += (set > 0 ? ',' : '') + ' "usertype" = @usertype';
             set++;
@@ -264,26 +295,94 @@ module.exports.updateUser = function(user) {
     });
 };
 
+// Creates a Restaurant object from SQL data
+deserializeRestaurant = function(rows) {
+  const restaurant = new Restaurant;
+
+  const firstRow = rows[0];
+
+  // Unique attributes
+  restaurant.restaurant_ID = firstRow[0].value;
+  restaurant.owner_ID = firstRow[1].value;
+  restaurant.rest_name = firstRow[2].value;
+  restaurant.address = firstRow[3].value;
+  restaurant.phone = firstRow[4].value;
+  restaurant.crea_date = firstRow[5].value;
+  restaurant.rating = firstRow[6].value ? firstRow[6].value : null;
+  restaurant.status = firstRow[7].value;
+
+  return restaurant;
+};
 // Creates an User object from SQL data
+// Crée un objet User à partir des données SQL
 deserializeUser = function(rows) {
-    const user = new User;
-    
-    const firstRow = rows[0];
-    const userAddresses = [];   // Workaround to prevent the inclusion of data twice
-    const userBillings = [];    // Workaround to prevent the inclusion of data twice
+  const user = new User;
 
-    // Single attributes
-    user.id = firstRow[0].value;
-    user.username = firstRow[1].value;
-    user.usertype = firstRow[2].value;
-    user.email = firstRow[3].value;
-    user.password = firstRow[4].value;
-    user.firstname = firstRow[5].value ? firstRow[5].value : null;
-    user.lastname = firstRow[6].value ? firstRow[6].value : null;
+  const firstRow = rows[0];
 
+  // Attributs uniques
+  user.user_ID = firstRow[0].value;
+  user.name = firstRow[1].value;
+  user.lastname = firstRow[2].value;
+  user.mail = firstRow[3].value;
+  user.password = firstRow[4].value;
+  user.phone = firstRow[5].value;
+  user.referer = firstRow[6].value ? firstRow[6].value : null;
+  user.nb_referer = firstRow[7].value ? firstRow[7].value : null;
+  user.role = firstRow[8].value;
+  user.rating = firstRow[9].value ? firstRow[9].value : null;
+  user.address = firstRow[10].value;
+  user.crea_date = firstRow[11].value;
+
+  return user;
+};
+
+// Select all restaurants
+module.exports.selectAllRestaurants = function(offset, limit) {
+  return new Promise((resolve, reject) => {
+    // Convert offset and limit to integers, provide default values if they are not defined or not a number
+    offset = Number.isInteger(parseInt(offset)) ? parseInt(offset) : 0;
+    limit = Number.isInteger(parseInt(limit)) ? parseInt(limit) : 100; // or any other default limit you want to set
+
+    const query = 'SELECT restaurant_ID AS "id", owner_ID, rest_name, address, phone, crea_date, rating, status FROM restaurants ORDER BY id OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY';
+
+    const request = new Request(query, function(err, rowCount, rows) {
+        try {
+            if (err)
+                throw err;
+
+            if (rowCount <= 0)
+                throw new ApiError("Query returned no rows", 400);
+
+            const restaurants = rows.map(row => deserializeRestaurant(row));
+
+            console.log(rowCount + " rows returned");
+
+            resolve(restaurants);
+        } catch (err) {
+            reject(err);
+        }
+    });
+
+    // Request parameters
+    request.addParameter("offset", Types.Int, offset);
+    request.addParameter("limit", Types.Int, limit);
+
+    connection.execSql(request);
+  });
+};
+
+// Creates an Restaurant object from SQL data
+// Crée un objet Restaurant à partir des données SQL
+deserializeRestaurant = function(row) {
+  const restaurant = new Restaurant;
+
+  // Attributs uniques
+  restaurant.restaurant_ID = row[0].value;
+  restaurant.name = row[1].value;
+  // Add other restaurant attributes here based on your model
   
-    
-    return user;
+  return restaurant;
 };
 
 // Trigger connection

@@ -1,39 +1,33 @@
-
 class User {
-    id;
-    username;
-    usertype;
-    email;
-    password;
-    firstname;
-    lastname;
-    address = [];   // Reference to a list of Address objects
-    billing = [];   // Reference to a list of Billing objects
-    restaurantId;
+    user_ID; // Changed from user_ID
+    name; // Changed from username
+    lastname; // No change
+    mail; // Changed from mail
+    password; // No change
+    phone; // Newly added field
+    referer; // Newly added field
+    nb_referer; // Newly added field
+    role; // No change
+    rating; // Newly added field
+    address; // No change
+    crea_date; // Newly added field
+    // Removed usertype, address, billing, restaurantId as they're not in the new DB schema
+
     toJson = function() {
         const json = {};
-        
-        json["id"] = this.id;
-        json["username"] = this.username;
-        json["usertype"] = this.usertype;
+
+        json["user_ID"] = this.id;
+        json["name"] = this.name;
+        json["lastname"] = this.lastname;
         json["email"] = this.email;
         json["password"] = this.password;
-        json["firstname"] = this.firstname;
-        json["lastname"] = this.lastname;
-
-        if (this.usertype === 3) {
-            json["restaurantId"] = this.restaurantId;
-          }
-
-        json["address"] = [];
-        this.address.forEach((obj) => {
-            json["address"].push(obj.toJson());
-        });
-        
-        json["billing"] = [];
-        this.billing.forEach((obj) => {
-            json["billing"].push(obj.toJson());
-        });
+        json["phone"] = this.phone;
+        json["referer"] = this.referer;
+        json["nb_referer"] = this.nb_referer;
+        json["role"] = this.role;
+        json["rating"] = this.rating;
+        json["address"] = this.address;
+        json["crea_date"] = this.crea_date;
         
         return json;
     }

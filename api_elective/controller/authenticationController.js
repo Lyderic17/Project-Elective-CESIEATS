@@ -49,7 +49,7 @@ module.exports.login = async function(req, res) {
             const accessToken = jwt.sign({
                 id: user.id,
                 username: user.username,
-                role: user.usertype
+                role: user.role
             }, process.env.AUTH_ACCESSTOKENSECRET || "secret", { expiresIn: process.env.AUTH_TOKENEXPIRATION || "20m" });
             
             // Refresh token generation
@@ -57,7 +57,7 @@ module.exports.login = async function(req, res) {
                 {
                   id: user.id,
                   username: user.username,
-                  role: user.usertype,
+                  role: user.role,
                 },
                 REFRESHTOKENSECRET,
                 { expiresIn: '7d' }
@@ -120,7 +120,7 @@ module.exports.login = async function(req, res) {
                 const accessToken = jwt.sign({
                     id: user.id,
                     username: user.username,
-                    role: user.usertype
+                    role: user.role
                 }, ACCESSTOKENSECRET || "secret", { expiresIn: TOKENEXPIRATION || "20m" });
 
                 res.json({ accessToken });

@@ -45,7 +45,7 @@ const PORT = process.env.PORT || 3000;
     // Logging middleware
     app.use(morgan("common", {stream: fs.createWriteStream(__dirname + "/access.log", { flags: "a" })}));
 
-app.post("/restaurants/create", restaurantController.createRestaurant);
+    app.post("/restaurant", restaurantController.post);
     // Login URL
     app.post("/login", authenticationController.login);
     app.post("/logout", authenticationController.logout);
