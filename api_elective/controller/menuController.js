@@ -15,6 +15,50 @@ const handleError = require("../utils/apiUtils").handleError;
 // Importing the ApiError exception class
 const ApiError = require("../exception/apiError");
 
+// Retrieving multiple menu data by user ID
+module.exports.getByUserId = function(req, res) {
+    try {
+        const userId = req.params.userId ? parseInt(req.params.userId) : null;
+
+        // Vérification des paramètres
+        if (!userId)
+            throw new ApiError("Parameter not recognized: userId", 400);
+
+        service.getMenuByUserId(userId).then((result) => {
+            const json = [];
+            result.forEach((r) => {
+                json.push(r.toJson());
+            });
+            res.json(json);
+        }).catch((error) => {
+            handleError(error, res, "retrieving menus");
+        });
+    } catch (err) {
+        handleError(err, res, "retrieving menus");
+    }
+};
+// Récupérer tous les menus créés par un restaurateur
+module.exports.getMenusByRestaurateurId = function(req, res) {
+    try {
+        const restaurateurId = req.params.restaurateurId ? parseInt(req.params.restaurateurId) : null;
+
+        // Vérification des paramètres
+        if (!restaurateurId)
+            throw new ApiError("Parameter not recognized: restaurateurId", 400);
+
+        service.getMenusByRestaurateurId(restaurateurId).then((result) => {
+            const json = [];
+            result.forEach((r) => {
+                json.push(r.toJson());
+            });
+            res.json(json);
+        }).catch((error) => {
+            handleError(error, res, "retrieving menus");
+        });
+    } catch (err) {
+        handleError(err, res, "retrieving menus");
+    }
+};
 
 // Create a new menu
 module.exports.createMenu = function(req, res) {

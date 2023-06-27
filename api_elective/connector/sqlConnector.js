@@ -75,7 +75,41 @@ module.exports.selectRestaurantById = function(id) {
       connection.execSql(request);
   });
 };
+//create menu :const { Request, Types } = require("tedious");
 
+module.exports.createMenu = function(menu) {
+    return new Promise((resolve, reject) => {
+        const query = `
+        INSERT INTO dbo.menus ("restaurant_ID", "menu_name", "composition", "price", "status")
+        VALUES (@restaurant_ID, @menu_name, @composition, @price, @status);
+        SELECT SCOPE_IDENTITY() AS "menu_ID";
+        `;
+  
+        const request = new Request(query, function (err, rowCount, rows) {
+            try {
+                if (err) throw err;
+  
+                if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
+  
+                console.log("Request finished");
+                console.log(rows[0][0].value, 'MENU ID FROM REQUEST')
+                const menuId = rows[0][0].value;
+                resolve(menuId);
+            } catch (err) {
+                reject(err);
+            }
+        });
+  
+        // Request parameters
+        request.addParameter("restaurant_ID", Types.Int, menu.restaurant_ID);
+        request.addParameter("menu_name", Types.VarChar, menu.menu_name);
+        request.addParameter("composition", Types.Text, menu.composition);
+        request.addParameter("price", Types.Float, menu.price);
+        request.addParameter("status", Types.TinyInt, menu.status);
+  
+        connection.execSql(request);
+    });
+  };
 // Create restaurant// Create restaurant
 module.exports.createRestaurant = function(restaurant) {
   return new Promise((resolve, reject) => {
@@ -92,8 +126,8 @@ module.exports.createRestaurant = function(restaurant) {
               if (rowCount <= 0) throw new ApiError("Statement returned no rows", 400);
 
               console.log("Request finished");
-
-              const restaurantId = rows[0].restaurant_ID.value;
+            console.log(rows[0][0].value, 'RESTAU ID FROM REQUEST')
+              const restaurantId = rows[0][0].value;
               resolve(restaurantId);
           } catch (err) {
               reject(err);
