@@ -17,6 +17,10 @@ module.exports.getByRestaurantId = function(id) {
     return connector.selectMenuByRestaurantId(id);
 };
 
+module.exports.getMenuByUserId = function(userId) {
+  return connector.selectMenuByUserId(userId);
+};
+
 // Retrieving multiple menu data by filter
 module.exports.getAll = function(limit, offset) {
     return connector.selectMenu(limit, offset);

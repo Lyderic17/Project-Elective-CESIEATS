@@ -75,6 +75,110 @@ module.exports.selectRestaurantById = function(id) {
       connection.execSql(request);
   });
 };
+
+
+//concernant les menus : 
+// Récupérer tous les menus créés par un restaurateur
+module.exports.selectMenusByRestaurateurId = function(restaurateurId) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT * 
+        FROM menus 
+        INNER JOIN restaurants ON menus.restaurant_ID = restaurants.restaurant_ID 
+        WHERE restaurants.owner_ID = @restaurateurId
+      `;
+  
+      const request = new Request(query, function(err, rowCount, rows) {
+        try {
+          if (err) {
+            throw err;
+          }
+  
+          if (rowCount <= 0) {
+            throw new ApiError("Query returned no rows", 400);
+          }
+  
+          const menus = rows.map(row => deserializeMenu(row));
+  
+          console.log(rowCount + " rows returned");
+  
+          resolve(menus);
+        } catch (err) {
+          reject(err);
+        }
+      });
+  
+      // Request parameters
+      request.addParameter("restaurateurId", Types.Int, restaurateurId);
+  
+      connection.execSql(request);
+    });
+  };
+  
+
+module.exports.selectMenuByUserId = async function(userId) {
+    // Obtenir les restaurants appartenant à l'utilisateur
+    const restaurants = await this.selectRestaurantByOwnerId(userId);
+    const restaurantIds = restaurants.map(restaurant => restaurant.restaurant_ID);
+
+    let menus = [];
+    for (let i = 0; i < restaurantIds.length; i++) {
+        // Obtenir les menus pour chaque restaurant
+        const restaurantMenus = await this.selectMenuByRestaurantId(restaurantIds[i]);
+        menus = menus.concat(restaurantMenus);
+    }
+
+    return menus;
+};
+module.exports.selectMenuByUserId = function(userId) {
+    return new Promise((resolve, reject) => {
+      // Utilisez la connexion à la base de données pour exécuter la requête
+      const query = "SELECT * FROM menus WHERE user_ID = @userId";
+      const request = new Request(query, function(err, rowCount, rows) {
+        try {
+          if (err) throw err;
+  
+          const menus = rows.map(row => deserializeMenu(row));
+  
+          console.log(rowCount + " rows returned");
+  
+          resolve(menus);
+        } catch (err) {
+          reject(err);
+        }
+      });
+  
+      // Paramètres de la requête
+      request.addParameter("userId", Types.Int, userId);
+  
+      connection.execSql(request);
+    });
+  };
+
+  module.exports.selectRestaurantByOwnerId = function(ownerId) {
+    return new Promise((resolve, reject) => {
+      // Utilisez la connexion à la base de données pour exécuter la requête
+      const query = "SELECT * FROM restaurants WHERE owner_ID = @ownerId";
+      const request = new Request(query, function(err, rowCount, rows) {
+        try {
+          if (err) throw err;
+  
+          const restaurants = rows.map(row => deserializeRestaurant(row));
+  
+          console.log(rowCount + " rows returned");
+  
+          resolve(restaurants);
+        } catch (err) {
+          reject(err);
+        }
+      });
+  
+      // Paramètres de la requête
+      request.addParameter("ownerId", Types.Int, ownerId);
+  
+      connection.execSql(request);
+    });
+  };
 //create menu :const { Request, Types } = require("tedious");
 
 module.exports.createMenu = function(menu) {

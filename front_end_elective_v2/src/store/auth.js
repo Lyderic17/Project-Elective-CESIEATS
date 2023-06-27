@@ -5,10 +5,14 @@ import axios from 'axios';
 export default {
   state: {
     user: null,
+    restaurant_ID: null,
   },
   mutations: {
     SET_AUTH_USER(state, user) {
       state.user = user;
+    },
+    SET_RESTAURANT_ID(state, restaurantId) {
+      state.restaurant_ID = restaurantId;
     },
   },
   actions: {

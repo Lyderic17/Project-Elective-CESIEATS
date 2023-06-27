@@ -43,13 +43,13 @@
             class="d-flex justify-space-around"
             style="padding-bottom: 15px"
           >
-            <v-btn outlined rounded text @click="addElement">Ajouter un élément</v-btn>
+            <v-btn outlined rounded text @click="addElement()">Ajouter un élément</v-btn>
           </div>
           <div
             class="d-flex justify-space-around"
             style="padding-bottom: 15px"
           >
-            <v-btn outlined rounded text @click="validate()"> Valider </v-btn>
+            <v-btn outlined rounded text @click="createMenu()"> Valider </v-btn>
           </div>
         </v-card>
       </v-form>
@@ -67,7 +67,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
 
 @Options({
   computed: {
-    ...mapGetters(['getUser']),
+    ...mapGetters(['getUser', 'restaurantId']),
   },
   data() {
     return {
@@ -79,6 +79,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
   },
   methods: {
     async createMenu() {
+      console.log(this.getUser, 'tellll');
       try {
         const userData = this.getUser;
         const restaurantData = await axios.get(
@@ -89,7 +90,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
             },
           },
         );
-
+        console.log(restaurantData, 'restaurantDatttaaaaaaaaaaa');
         if (restaurantData.data && restaurantData.data.length > 0) {
           const menuData = {
             restaurant_ID: restaurantData.data[0].restaurant_ID,
@@ -99,13 +100,13 @@ axios.defaults.baseURL = 'http://localhost:3000';
             status: '',
           };
 
-          const response = await axios.post('/menu', menuData, {
+          const response = await axios.post('/menu/create', menuData, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
             },
           });
 
-          console.log(response.data.message);
+          console.log(response.data.message, 'EEEEEEEEEEHOH');
 
           // Réinitialisation des valeurs des champs de texte
           this.new_menu_name = null;
@@ -136,7 +137,7 @@ axios.defaults.baseURL = 'http://localhost:3000';
     },
 
     addElement() {
-      this.elements.push(null);
+      this.elements.push('');
     },
   },
 
